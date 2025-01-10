@@ -29,7 +29,7 @@ The goal of this project is to create a framework for active learning at the edg
 
 ```mermaid
 graph TD
-    A[Load a small (proxy) model] --> B[Label an initial dataset]
+    A[Load a small proxy model] --> B[Label an initial dataset]
     B --> C[Train model on labeled dataset]
     C --> D[Run inference on unlabeled dataset]
     D --> E[Evaluate model performance]
