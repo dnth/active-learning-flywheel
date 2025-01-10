@@ -35,7 +35,7 @@ graph TD
     D --> E[Evaluate model performance]
     E --> F{Model good enough?}
     F -->|Yes| G[Save model and dataset]
-    G --> H[Train a larger model than the proxy model]
+    G --> H[Train and deploy a larger model]
     F -->|No| I[Select informative images]
     I --> J[Label selected images]
     J --> C
