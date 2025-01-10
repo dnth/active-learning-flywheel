@@ -1,6 +1,8 @@
 # active-vision
 
-![active-vision](./assets/logo.png)
+<p align="center">
+  <img src="./assets/logo.png" alt="active-vision">
+</p>
 
 Active learning at the edge for computer vision.
 
