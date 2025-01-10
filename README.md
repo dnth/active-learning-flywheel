@@ -12,6 +12,9 @@ The goal of this project is to create a framework for active learning at the edg
 
 ## Workflow
 
+### With unlabeled data
+If we have no labeled data, we can use active learning to iteratively improve the model and build a labeled dataset.
+
 1. Load a small proxy model.
 2. Label an initial dataset.
 3. Train the proxy model on the labeled dataset.
@@ -41,3 +44,26 @@ graph TD
     J --> C
 ```
     
+### With labeled data
+If we have a labeled dataset, we can use active learning to iteratively improve the dataset and the model by fixing the most important label errors.
+
+1. Load a small proxy model.
+2. Train the proxy model on the labeled dataset.
+3. Run inference on the entire labeled dataset.
+4. Get the most important label errors with active learning.
+5. Fix the label errors.
+6. Repeat steps 2-5 until the dataset is good enough.
+7. Save the labeled dataset.
+8. Train a larger model on the saved labeled dataset.
+
+```mermaid
+graph TD
+    A[Load a small proxy model] --> B[Train proxy model on labeled dataset]
+    B --> C[Run inference on labeled dataset]
+    C --> D[Get most important label errors]
+    D --> E[Fix label errors]
+    E --> B
+    B --> F{Dataset good enough?}
+    F -->|Yes| G[Save labeled dataset]
+    G --> H[Train and deploy a larger model]
+```
