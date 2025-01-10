@@ -27,8 +27,8 @@ The goal of this project is to create a framework for active learning at the edg
 ```mermaid
 graph TD
 A[Load Small Model] --> B[Label Small Dataset]
-B --> C[Train Model]
-C --> D[Run Inference on Unlabeled Data]
+B --> C[Train Model on Labeled Dataset]
+C --> D[Run Inference on Unlabeled Dataset]
 D --> E[Select Informative Images]
 E --> F[Label Selected Images]
 F --> C
