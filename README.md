@@ -100,6 +100,13 @@ Train a proxy model on the initial dataset. The proxy model will be a small mode
 
 > [!TIP]
 > With the initial model we got 88.82% accuracy on the validation set. See the [notebook](./nbs/01_initial_sampling.ipynb) for more details.
+> | Train Epochs | Number of Images | Validation Accuracy |      Source      |
+> |--------------|-----------------|----------------------|------------------|
+> | 10           | 100             | 88.82%               | Initial Sampling |
+> | 80           | 9469            | 94.90%               | fastai |
+> | 200          | 9469            | 95.11%               | fastai |
+
+
 
 ### Step 4: Inference on the unlabeled dataset
 Run inference on the unlabeled dataset (the remaining imagenette train set) and evaluate the performance of the proxy model. Compute the accuracy of the proxy model on the validation set and compare it to the leaderboard.
