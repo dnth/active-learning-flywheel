@@ -1,9 +1,9 @@
 [project]
-name = "active-learning-flywheel"
+name = "active-vision"
 version = "0.1.0"
-description = "Add your description here"
+description = "Active learning for edge vision."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "datasets>=3.2.0",
     "fastai>=2.7.18",

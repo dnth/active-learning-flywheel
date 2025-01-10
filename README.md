@@ -44,6 +44,9 @@ model.random_sampling()
 
 # Merge the datasets
 dataset = av.merge_datasets(dataset, dataset_2)
+
+# Launch a streamlit app to label the images
+av.label_images(dataset)
 ```
 
 ## Workflow
