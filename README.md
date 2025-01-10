@@ -36,7 +36,7 @@ graph TD
     E --> F{Model good enough?}
     F -->|Yes| G[Save model and dataset]
     G --> H[Train and deploy a larger model]
-    F -->|No| I[Select informative images]
+    F -->|No| I[Select informative images using active learning]
     I --> J[Label selected images]
     J --> C
 ```
