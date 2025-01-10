@@ -1,4 +1,5 @@
-# active-vision
+![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=for-the-badge)
 
 <p align="center">
   <img src="./assets/logo.png" alt="active-vision">
