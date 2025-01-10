@@ -102,7 +102,7 @@ Train a proxy model on the initial dataset. The proxy model will be a small mode
 > With the initial model we got 88.82% accuracy on the validation set. See the [notebook](./nbs/01_initial_sampling.ipynb) for more details.
 > | Train Epochs | Number of Images | Validation Accuracy |      Source      |
 > |--------------|-----------------|----------------------|------------------|
-> | 10           | 100             | 88.82%               | Initial Sampling |
+> | 10           | 100             | 88.82%               | Initial sampling [notebook](./nbs/01_initial_sampling.ipynb) |
 > | 80           | 9469            | 94.90%               | fastai |
 > | 200          | 9469            | 95.11%               | fastai |
 
