@@ -12,7 +12,7 @@ The goal of this project is to create a framework for active learning at the edg
 
 ## Workflow
 
-1. Load a small model.
+1. Load a small (proxy) model.
 2. Label an initial dataset.
 3. Train the model on the labeled dataset.
 4. Run inference on the unlabeled dataset.
@@ -29,13 +29,13 @@ The goal of this project is to create a framework for active learning at the edg
 
 ```mermaid
 graph TD
-    A[Load a small model] --> B[Label an initial dataset]
+    A[Load a small (proxy) model] --> B[Label an initial dataset]
     B --> C[Train model on labeled dataset]
     C --> D[Run inference on unlabeled dataset]
     D --> E[Evaluate model performance]
     E --> F{Model good enough?}
     F -->|Yes| G[Save model and dataset]
-    G --> H[Train larger model]
+    G --> H[Train a larger model than the proxy model]
     F -->|No| I[Select informative images]
     I --> J[Label selected images]
     J --> C
