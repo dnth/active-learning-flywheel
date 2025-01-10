@@ -2,7 +2,7 @@
 ![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=for-the-badge)
 
 <p align="center">
-  <img src="./assets/logo.png" alt="active-vision">
+  <img src="https://github.com/dnth/active-vision/blob/main/assets/logo.png" alt="active-vision">
 </p>
 
 Active learning at the edge for computer vision.
