@@ -56,14 +56,18 @@ If we have a labeled dataset, we can use active learning to iteratively improve 
 7. Save the labeled dataset.
 8. Train a larger model on the saved labeled dataset.
 
+
+
 ```mermaid
 graph TD
     A[Load a small proxy model] --> B[Train proxy model on labeled dataset]
     B --> C[Run inference on labeled dataset]
-    C --> D[Get most important label errors]
+    C --> D[Get important label errors using active learning]
     D --> E[Fix label errors]
-    E --> B
-    B --> F{Dataset good enough?}
-    F -->|Yes| G[Save labeled dataset]
-    G --> H[Train and deploy a larger model]
+    E --> F{Dataset good enough?}
+    F -->|No| B
+    F -->|Yes| G[Save cleaned dataset]
+    G --> H[Train and deploy larger model]
 ```
+
+
