@@ -1,4 +1,6 @@
 # active-vision
+
+![active-vision](./assets/logo.png)
 Active learning at the edge for computer vision.
 
 The goal of this project is to create a framework for active learning at the edge for computer vision. We should be able to train a model on a small dataset and then use active learning to iteratively improve the model all on a local machine.
