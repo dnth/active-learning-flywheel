@@ -15,6 +15,12 @@ The goal of this project is to create a framework for active learning at the edg
 - Database: sqlite
 - Experiment tracking: wandb
 
+## Installation
+
+```bash
+pip install active-vision
+```
+
 ## Usage [WIP]
 
 ```python
