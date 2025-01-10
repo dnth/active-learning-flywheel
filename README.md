@@ -12,17 +12,17 @@ The goal of this project is to create a framework for active learning at the edg
 
 ## Workflow
 
-1. Load a small (proxy) model.
+1. Load a small proxy model.
 2. Label an initial dataset.
-3. Train the model on the labeled dataset.
+3. Train the proxy model on the labeled dataset.
 4. Run inference on the unlabeled dataset.
-5. Evaluate the performance of the model on the unlabeled dataset.
+5. Evaluate the performance of the proxy model on the unlabeled dataset.
 6. Is model good enough?    
-    - Yes: Save the model and the dataset.
+    - Yes: Save the proxy model and the dataset.
     - No: Select the most informative images to label using active learning.
 7. Label the most informative images and add them to the dataset.
 8. Repeat steps 3-6.
-9. Save the model and the dataset.
+9. Save the proxy model and the dataset.
 10. Train a larger model on the saved dataset.
 
 
@@ -30,11 +30,11 @@ The goal of this project is to create a framework for active learning at the edg
 ```mermaid
 graph TD
     A[Load a small proxy model] --> B[Label an initial dataset]
-    B --> C[Train model on labeled dataset]
+    B --> C[Train proxy model on labeled dataset]
     C --> D[Run inference on unlabeled dataset]
-    D --> E[Evaluate model performance]
+    D --> E[Evaluate proxy model performance]
     E --> F{Model good enough?}
-    F -->|Yes| G[Save model and dataset]
+    F -->|Yes| G[Save proxy model and dataset]
     G --> H[Train and deploy a larger model]
     F -->|No| I[Select informative images using active learning]
     I --> J[Label selected images]
