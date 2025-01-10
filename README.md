@@ -84,6 +84,14 @@ We will treat the imagenette train set as a unlabeled set and iteratively sample
 
 I've processed the imagenette dataset and uploaded it to the hub. You can download it from [here](https://huggingface.co/datasets/dnth/active-learning-imagenette).
 
+To load the dataset, you can use the following code:
+```python
+from datasets import load_dataset
+
+unlabeled_dataset = load_dataset("dnth/active-learning-imagenette", "unlabeled")
+eval_dataset = load_dataset("dnth/active-learning-imagenette", "evaluation")
+```
+
 ### Step 2: Initial Sampling
 Label an initial dataset of 10 images from each class. This will give us a small proxy dataset to train our model on. The sampling will be done randomly. There are more intelligent sampling strategies but we will start with random sampling.
 
