@@ -11,6 +11,7 @@ The goal of this project is to create a framework for active learning at the edg
 - Experiment tracking: wandb
 
 ## Workflow
+There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
 
 ### With unlabeled data
 If we have no labeled data, we can use active learning to iteratively improve the model and build a labeled dataset.
