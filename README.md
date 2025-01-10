@@ -18,8 +18,16 @@ The goal of this project is to create a framework for active learning at the edg
 
 ## Installation
 
+PyPI
 ```bash
 pip install active-vision
+```
+
+Local install
+```bash
+git clone https://github.com/dnth/active-vision.git
+cd active-vision
+pip install -e .
 ```
 
 ## Usage [WIP]
