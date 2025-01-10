@@ -16,21 +16,28 @@ The goal of this project is to create a framework for active learning at the edg
 2. Label a small dataset.
 3. Train the model on the labeled dataset.
 4. Run inference on the unlabeled dataset.
-5. Select the most informative images to label using active learning.
-6. Label the most informative images and add them to the dataset.
-7. Repeat steps 3-6 until the model is good enough or we run out of resources.
-8. Save the model and the dataset.
-9. Train a larger model on the saved dataset.
+5. Evaluate the performance of the model on the unlabeled dataset.
+6. Is model good enough?    
+    - Yes: Save the model and the dataset.
+    - No: Select the most informative images to label using active learning.
+7. Label the most informative images and add them to the dataset.
+8. Repeat steps 3-6.
+9. Save the model and the dataset.
+10. Train a larger model on the saved dataset.
 
 
 
 ```mermaid
 graph TD
-A[Load a small model] --> B[Label a small dataset]
-B --> C[Train the model on the labeled dataset]
-C --> D[Run inference on the unlabeled dataset]
-D --> E[Select the most informative images to label]
-E --> F[Label the most informative images]
-F --> B
+    A[Load a small model] --> B[Label a small dataset]
+    B --> C[Train model on labeled dataset]
+    C --> D[Run inference on unlabeled dataset]
+    D --> E[Evaluate model performance]
+    E --> F{Model good enough?}
+    F -->|Yes| G[Save model and dataset]
+    G --> H[Train larger model]
+    F -->|No| I[Select informative images]
+    I --> J[Label selected images]
+    J --> C
 ```
     
