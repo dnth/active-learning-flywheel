@@ -98,6 +98,9 @@ Label an initial dataset of 10 images from each class. This will give us a small
 ### Step 3: Training the proxy model
 Train a proxy model on the initial dataset. The proxy model will be a small model that is easy to train and deploy. We will use the fastai framework to train the model. We will use the resnet18 architecture as a starting point.
 
+> [!TIP]
+> With the initial model we got 88.82% accuracy on the validation set. See the [notebook](./nbs/01_initial_sampling.ipynb) for more details.
+
 ### Step 4: Inference on the unlabeled dataset
 Run inference on the unlabeled dataset (the remaining imagenette train set) and evaluate the performance of the proxy model. Compute the accuracy of the proxy model on the validation set and compare it to the leaderboard.
 

@@ -10,4 +10,5 @@ dependencies = [
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.5",
     "loguru>=0.7.3",
+    "seaborn>=0.13.2",
 ]
