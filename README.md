@@ -1,4 +1,4 @@
-# active-learning-flywheel
+# active-vision
 Active learning at the edge for computer vision.
 
 The goal of this project is to create a framework for active learning at the edge for computer vision. We should be able to train a model on a small dataset and then use active learning to iteratively improve the model all on a local machine.
@@ -9,6 +9,42 @@ The goal of this project is to create a framework for active learning at the edg
 - User interface: streamlit
 - Database: sqlite
 - Experiment tracking: wandb
+
+## Usage [WIP]
+
+```python
+import active_vision as av
+
+# Load a model
+model = av.load_model("resnet18")
+
+# Load a dataset
+dataset = av.load_dataset(df)
+
+# Inital sampling
+dataset = av.initial_sampling(dataset, n_samples=10)
+
+# Train the model
+model.train()
+
+# Save the model
+model.save()
+
+# Evaluate the model
+model.evaluate(df)
+
+# Uncertainty sampling to get the lowest confidence images
+model.uncertainty_sampling()
+
+# Diversity sampling to get the most diverse images (outliers)
+model.diversity_sampling()
+
+# Random sampling
+model.random_sampling()
+
+# Merge the datasets
+dataset = av.merge_datasets(dataset, dataset_2)
+```
 
 ## Workflow
 There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
@@ -103,7 +139,6 @@ Train a proxy model on the initial dataset. The proxy model will be a small mode
 > | Train Epochs | Number of Images | Validation Accuracy |      Source      |
 > |--------------|-----------------|----------------------|------------------|
 > | 10           | 100             | 91.24%               | Initial sampling [notebook](./nbs/01_initial_sampling.ipynb) |
-> | 10           | 200             | 94.57%               | First relabeling [notebook](./nbs/03_retrain_model.ipynb) |
 > | 80           | 9469            | 94.90%               | fastai |
 > | 200          | 9469            | 95.11%               | fastai |
 
@@ -119,3 +154,9 @@ Use active learning to select the most informative images to label from the unla
 Repeat step 3 - 5 until the performance on the validation set is close to the leaderboard. Note the number of labeled images vs the performance on the validation set. Ideally we want to get to a point where the performance on the validation set is close to the leaderboard with minimal number of labeled images.
 
 
+After the first iteration we got 94.57% accuracy on the validation set. See the [notebook](./nbs/03_retrain_model.ipynb) for more details.
+
+> [!TIP]
+> | Train Epochs | Number of Images | Validation Accuracy |      Source      |
+> |--------------|-----------------|----------------------|------------------|
+> | 10           | 200             | 94.57%               | First relabeling [notebook](./nbs/03_retrain_model.ipynb) |
