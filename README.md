@@ -96,20 +96,21 @@ eval_dataset = load_dataset("dnth/active-learning-imagenette", "evaluation")
 Label an initial dataset of 10 images from each class. This will give us a small proxy dataset to train our model on. The sampling will be done randomly. There are more intelligent sampling strategies but we will start with random sampling.
 
 ### Step 3: Training the proxy model
-Train a proxy model on the initial dataset. The proxy model will be a small model that is easy to train and deploy. We will use the fastai framework to train the model. We will use the resnet18 architecture as a starting point.
+Train a proxy model on the initial dataset. The proxy model will be a small model that is easy to train and deploy. We will use the fastai framework to train the model. We will use the resnet18 architecture as a starting point. Once training is complete, compute the accuracy of the proxy model on the validation set and compare it to the leaderboard.
 
 > [!TIP]
-> With the initial model we got 88.82% accuracy on the validation set. See the [notebook](./nbs/01_initial_sampling.ipynb) for more details.
+> With the initial model we got 91.24% accuracy on the validation set. See the [notebook](./nbs/01_initial_sampling.ipynb) for more details.
 > | Train Epochs | Number of Images | Validation Accuracy |      Source      |
 > |--------------|-----------------|----------------------|------------------|
 > | 10           | 100             | 91.24%               | Initial sampling [notebook](./nbs/01_initial_sampling.ipynb) |
+> | 10           | 200             | 94.57%               | First relabeling [notebook](./nbs/03_retrain_model.ipynb) |
 > | 80           | 9469            | 94.90%               | fastai |
 > | 200          | 9469            | 95.11%               | fastai |
 
 
 
 ### Step 4: Inference on the unlabeled dataset
-Run inference on the unlabeled dataset (the remaining imagenette train set) and evaluate the performance of the proxy model. Compute the accuracy of the proxy model on the validation set and compare it to the leaderboard.
+Run inference on the unlabeled dataset (the remaining imagenette train set) and evaluate the performance of the proxy model. 
 
 ### Step 5: Active learning
 Use active learning to select the most informative images to label from the unlabeled set. Pick the top 10 images from the unlabeled set that the proxy model is least confident about and label them.
