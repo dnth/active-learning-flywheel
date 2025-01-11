@@ -110,11 +110,11 @@ class ActiveLearner:
         logger.info(f"Accuracy: {accuracy:.2%}")
         return accuracy
 
-    def sample_uncertain(self, num_samples: int):
+    def sample_uncertain(self, df: pd.DataFrame, num_samples: int):
         """
         Sample top `num_samples` low confidence samples. Returns a df with filepaths and predicted labels, and confidence scores.
         """
-        uncertain_df = self.pred_df.sort_values(
+        uncertain_df = df.sort_values(
             by="pred_conf", ascending=True
         ).head(num_samples)
         return uncertain_df

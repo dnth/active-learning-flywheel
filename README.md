@@ -50,14 +50,14 @@ al.train(epochs=3, lr=1e-3)
 # Load evaluation data
 eval_df = pd.read_parquet("evaluation_samples.parquet")
 
-# Evaluate the model
+# Evaluate the model on a labeled evaluation set
 accuracy = al.evaluate(eval_df, "filepath", "label")
 
-# Get predictions for a list of files
+# Get predictions from an unlabeled set
 pred_df = al.predict(filepaths)
 
-# Sample uncertain images for labeling
-uncertain_df = al.sample_uncertain(n_samples=10)
+# Sample low confidence predictions
+uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
 
 # Add newly labeled data to training set
 al.add_to_train_set(uncertain_df)
