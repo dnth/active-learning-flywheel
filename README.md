@@ -30,43 +30,41 @@ cd active-vision
 pip install -e .
 ```
 
-## Usage [WIP]
+## Usage
 
 ```python
 import active_vision as av
+from active_vision.core import ActiveLearner
+import pandas as pd
 
-# Load a model
-model = av.load_model("resnet18")
+# Create an active learner instance with a model
+al = ActiveLearner("resnet18")
 
-# Load a dataset
-dataset = av.load_dataset(df)
+# Load your training data (expects a DataFrame with filepath and label columns)
+train_df = pd.read_parquet("training_samples.parquet")
+train_df.rename(columns={"label_name": "label"}, inplace=True)
 
-# Inital sampling
-dataset = av.initial_sampling(dataset, n_samples=10)
+# Load the dataset into the active learner
+al.load_dataset(train_df, "filepath", "label")
 
 # Train the model
-model.train()
+al.train(epochs=3, lr=1e-3)
 
-# Save the model
-model.save()
+# Load evaluation data
+eval_df = pd.read_parquet("evaluation_samples.parquet")
+eval_df.rename(columns={"label_name": "label"}, inplace=True)
 
 # Evaluate the model
-model.evaluate(df)
+accuracy = al.evaluate(eval_df, "filepath", "label")
 
-# Uncertainty sampling to get the lowest confidence images
-model.uncertainty_sampling()
+# Get predictions for a list of files
+predictions = al.predict(filepaths, batch_size=128)
 
-# Diversity sampling to get the most diverse images (outliers)
-model.diversity_sampling()
+# Sample uncertain images for labeling
+uncertain_df = al.sample_uncertain(n_samples=10)
 
-# Random sampling
-model.random_sampling()
-
-# Merge the datasets
-dataset = av.merge_datasets(dataset, dataset_2)
-
-# Launch a streamlit app to label the images
-av.label_images(dataset)
+# Add newly labeled data to training set
+al.add_to_train_set(uncertain_df)
 ```
 
 ## Workflow
