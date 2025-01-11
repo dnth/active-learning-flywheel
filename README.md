@@ -4,7 +4,7 @@
 ![Downloads](https://img.shields.io/pepy/dt/active-vision?style=for-the-badge&logo=pypi&logoColor=white&label=Downloads&color=purple)   
 
 <p align="center">
-  <img src="https://github.com/dnth/active-vision/blob/main/assets/logo.png" alt="active-vision">
+  <img src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/logo.png" alt="active-vision">
 </p>
 
 Active learning at the edge for computer vision.
