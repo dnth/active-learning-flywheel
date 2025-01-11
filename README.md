@@ -31,15 +31,14 @@ pip install -e .
 ```
 
 ## Usage
+See the [notebook](./nbs/end-to-end.ipynb) for a complete example.
 
 ```python
-import active_vision as av
-from active_vision.core import ActiveLearner
+from active_vision import ActiveLearner
 import pandas as pd
 
 # Create an active learner instance with a model
 al = ActiveLearner("resnet18")
-
 
 # Load the dataset into the active learner
 train_df = pd.read_parquet("training_samples.parquet")
