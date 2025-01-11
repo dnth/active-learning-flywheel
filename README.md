@@ -35,6 +35,11 @@ pip install -e .
 ## Usage
 See the [notebook](./nbs/end-to-end.ipynb) for a complete example.
 
+Be sure to prepared 2 datasets:
+- train: A dataframe of an existing labeled training dataset.
+- unlabeled: A dataframe of unlabeled data which we will sample from using active learning.
+- eval: A dataframe of labeled data which we will use to evaluate the performance of the model. (Optional)
+
 ```python
 from active_vision import ActiveLearner
 import pandas as pd
