@@ -40,11 +40,9 @@ import pandas as pd
 # Create an active learner instance with a model
 al = ActiveLearner("resnet18")
 
-# Load your training data (expects a DataFrame with filepath and label columns)
-train_df = pd.read_parquet("training_samples.parquet")
-train_df.rename(columns={"label_name": "label"}, inplace=True)
 
 # Load the dataset into the active learner
+train_df = pd.read_parquet("training_samples.parquet")
 al.load_dataset(train_df, "filepath", "label")
 
 # Train the model
@@ -52,13 +50,12 @@ al.train(epochs=3, lr=1e-3)
 
 # Load evaluation data
 eval_df = pd.read_parquet("evaluation_samples.parquet")
-eval_df.rename(columns={"label_name": "label"}, inplace=True)
 
 # Evaluate the model
 accuracy = al.evaluate(eval_df, "filepath", "label")
 
 # Get predictions for a list of files
-predictions = al.predict(filepaths, batch_size=128)
+pred_df = al.predict(filepaths)
 
 # Sample uncertain images for labeling
 uncertain_df = al.sample_uncertain(n_samples=10)
