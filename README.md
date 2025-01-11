@@ -1,6 +1,6 @@
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green.svg?style=for-the-badge)
-![PyPI](https://img.shields.io/pypi/v/active-vision?style=for-the-badge)
+[![PyPI](https://img.shields.io/pypi/v/active-vision?style=for-the-badge)](https://pypi.org/project/active-vision/)
 ![Downloads](https://img.shields.io/pepy/dt/active-vision?style=for-the-badge&logo=pypi&logoColor=white&label=Downloads&color=purple)   
 
 <p align="center">
