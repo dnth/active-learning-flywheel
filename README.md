@@ -180,7 +180,8 @@ graph TD
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Source |
 |-----------------|---------------------|--------------|-------|--------|
 | 2100            | 99.70%              | ?            | ViT   | [Link](https://huggingface.co/abhishek/autotrain-dog-vs-food) |
-| 1600            | 100.00%             | 6            | convnext_small_in22k   | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/02_train.ipynb) |
+| 160             | 100.00%             | 6            | convnext_small_in22k   | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/02_train.ipynb) |
+| 160             | 97.60%              | 4            | resnet18              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/01_label.ipynb) |
 
 <!-- ## Methodology
 To test out the workflows we will use the [imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette). But this will be applicable to any dataset.
