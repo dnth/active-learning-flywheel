@@ -87,7 +87,9 @@ class ActiveLearner:
         )
         return self.pred_df
 
-    def evaluate(self, df: pd.DataFrame, filepath_col: str, label_col: str, batch_size: int = 16):
+    def evaluate(
+        self, df: pd.DataFrame, filepath_col: str, label_col: str, batch_size: int = 16
+    ):
         """
         Evaluate on a labeled dataset. Returns a score.
         """
@@ -114,18 +116,152 @@ class ActiveLearner:
         """
         Sample top `num_samples` low confidence samples. Returns a df with filepaths and predicted labels, and confidence scores.
         """
-        uncertain_df = df.sort_values(
-            by="pred_conf", ascending=True
-        ).head(num_samples)
+        uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(num_samples)
         return uncertain_df
+
+    def label(self, df: pd.DataFrame):
+        """
+        Launch a labeling interface for the user to label the samples.
+        Input is a df with filepaths listing the files to be labeled. Output is a df with filepaths and labels.
+        """
+        import gradio as gr
+
+        shortcut_js = """
+        <script>
+        function shortcuts(e) {
+            // Only block shortcuts if we're in a text input or textarea
+            if (e.target.tagName.toLowerCase() === "textarea" || 
+                (e.target.tagName.toLowerCase() === "input" && e.target.type.toLowerCase() === "text")) {
+                return;
+            }
+            
+            if (e.key.toLowerCase() == "w") {
+                document.getElementById("submit_btn").click();
+            } else if (e.key.toLowerCase() == "d") {
+                document.getElementById("next_btn").click();
+            } else if (e.key.toLowerCase() == "a") {
+                document.getElementById("back_btn").click();
+            }
+        }
+        document.addEventListener('keypress', shortcuts, false);
+        </script>
+        """
+
+        filepaths = df["filepath"].tolist()
+
+        with gr.Blocks(head=shortcut_js) as demo:
+            current_index = gr.State(value=0)
+
+            filename = gr.Textbox(
+                label="Filename", value=filepaths[0], interactive=False
+            )
+
+            image = gr.Image(
+                type="filepath", label="Image", value=filepaths[0], height=500
+            )
+            category = gr.Radio(choices=self.class_names, label="Select Category")
+
+            with gr.Row():
+                back_btn = gr.Button("← Previous (A)", elem_id="back_btn")
+                submit_btn = gr.Button(
+                    "Submit (W)",
+                    variant="primary",
+                    elem_id="submit_btn",
+                    interactive=False,
+                )
+                next_btn = gr.Button("Next → (D)", elem_id="next_btn")
+
+            progress = gr.Slider(
+                minimum=0,
+                maximum=len(filepaths) - 1,
+                value=0,
+                label="Progress",
+                interactive=False,
+            )
+
+            finish_btn = gr.Button("Finish Labeling", variant="primary")
+
+            def update_submit_btn(choice):
+                return gr.Button(interactive=choice is not None)
+
+            category.change(
+                fn=update_submit_btn, inputs=[category], outputs=[submit_btn]
+            )
+
+            def navigate(current_idx, direction):
+                next_idx = current_idx + direction
+                if 0 <= next_idx < len(filepaths):
+                    return filepaths[next_idx], filepaths[next_idx], next_idx, next_idx
+                return (
+                    filepaths[current_idx],
+                    filepaths[current_idx],
+                    current_idx,
+                    current_idx,
+                )
+
+            def save_and_next(current_idx, selected_category):
+                if selected_category is None:
+                    return (
+                        filepaths[current_idx],
+                        filepaths[current_idx],
+                        current_idx,
+                        current_idx,
+                    )
+
+                # Save the current annotation
+                with open("labeled.csv", "a") as f:
+                    f.write(f"{filepaths[current_idx]},{selected_category}\n")
+
+                # Move to next image if not at the end
+                next_idx = current_idx + 1
+                if next_idx >= len(filepaths):
+                    return (
+                        filepaths[current_idx],
+                        filepaths[current_idx],
+                        current_idx,
+                        current_idx,
+                    )
+                return filepaths[next_idx], filepaths[next_idx], next_idx, next_idx
+
+            def convert_csv_to_parquet():
+                try:
+                    df = pd.read_csv("labeled.csv", header=None)
+                    df.columns = ["filepath", "label"]
+                    df = df.drop_duplicates(subset=["filepath"], keep="last")
+                    df.to_parquet("labeled.parquet")
+                except Exception as e:
+                    print(e)
+                    return
+
+            back_btn.click(
+                fn=lambda idx: navigate(idx, -1),
+                inputs=[current_index],
+                outputs=[filename, image, current_index, progress],
+            )
+
+            next_btn.click(
+                fn=lambda idx: navigate(idx, 1),
+                inputs=[current_index],
+                outputs=[filename, image, current_index, progress],
+            )
+
+            submit_btn.click(
+                fn=save_and_next,
+                inputs=[current_index, category],
+                outputs=[filename, image, current_index, progress],
+            )
+
+            finish_btn.click(fn=convert_csv_to_parquet)
+
+        demo.launch(height=1000)
 
     def add_to_train_set(self, df: pd.DataFrame):
         """
         Add samples to the training set.
         """
         new_train_set = df.copy()
-        new_train_set.drop(columns=["pred_conf"], inplace=True)
-        new_train_set.rename(columns={"pred_label": "label"}, inplace=True)
+        # new_train_set.drop(columns=["pred_conf"], inplace=True)
+        # new_train_set.rename(columns={"pred_label": "label"}, inplace=True)
 
         len_old = len(self.train_set)
 
@@ -136,7 +272,6 @@ class ActiveLearner:
             subset=["filepath"], keep="last"
         )
         self.train_set.reset_index(drop=True, inplace=True)
-
 
         if len(self.train_set) == len_old:
             logger.warning("No new samples added to training set")
