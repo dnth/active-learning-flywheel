@@ -9,14 +9,7 @@
 
 Active learning at the edge for computer vision.
 
-The goal of this project is to create a framework for active learning at the edge for computer vision. We should be able to train a model on a small dataset and then use active learning to iteratively improve the model all on a local machine.
-
-## Tech Stack
-
-- Training framework: fastai
-- User interface: streamlit
-- Database: sqlite
-- Experiment tracking: wandb
+The goal of this project is to create a framework for the active learning loop for computer vision deployed on edge devices. 
 
 ## Installation
 I recommend using [uv](https://docs.astral.sh/uv/) to set up a virtual environment and install the package. You can also use other virtual env of your choice.
