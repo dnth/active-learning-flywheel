@@ -82,15 +82,17 @@ al.label(uncertain_df, output_filename="uncertain")
 Once complete, the labeled samples will be save into a new df.
 We can now add the newly labeled data to the training set.
 
-> [!TIP]
-> For the toy dataset, I got to about 93% accuracy on the evaluation set with 200+ images out of 9369. The best performing model on the leaderboard got 95.11% accuracy with 9469 images.
-
 ```python
 # Add newly labeled data to training set and save as a new file active_labeled
 al.add_to_train_set(labeled_df, output_filename="active_labeled")
 ```
 
 Repeat the process until the model is good enough. Use the dataset to train a larger model and deploy.
+
+> [!TIP]
+> For the toy dataset, I got to about 93% accuracy on the evaluation set with 200+ images out of 9369. The best performing model on the leaderboard got 95.11% accuracy with 9469 images.
+> 
+> This took me about 6 iterations of relabeling. Each iteration took about 5 minutes to complete including labeling and model training.
 
 ## Workflow
 There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
