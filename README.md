@@ -20,13 +20,14 @@ If you're using uv:
 uv venv
 uv sync
 ```
+Once the virtual environment is created, you can install the package using pip.
 
-PyPI
+Get a release from PyPI
 ```bash
 pip install active-vision
 ```
 
-Local install
+Install from source
 ```bash
 git clone https://github.com/dnth/active-vision.git
 cd active-vision
