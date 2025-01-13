@@ -61,6 +61,9 @@ class ActiveLearner:
         self.class_names = self.dls.vocab
         logger.info("Done. Ready to train.")
 
+    def show_batch(self):
+        self.dls.show_batch()
+
     def lr_find(self):
         logger.info("Finding optimal learning rate")
         self.lrs = self.learn.lr_find(suggest_funcs=(minimum, steep, valley, slide))
