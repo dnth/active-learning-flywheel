@@ -1,6 +1,6 @@
 [project]
 name = "active-vision"
-version = "0.0.2"
+version = "0.0.3"
 description = "Active learning for edge vision."
 readme = "README.md"
 requires-python = ">=3.10"
