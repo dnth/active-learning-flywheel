@@ -104,10 +104,10 @@ There are two workflows for active learning at the edge that we can use dependin
 If we have no labeled data, we can use active learning to iteratively improve the model and build a labeled dataset.
 
 1. Load a small proxy model.
-2. Label an initial dataset.
+2. Label an initial dataset. If there is none, you'll have to label some images.
 3. Train the proxy model on the labeled dataset.
 4. Run inference on the unlabeled dataset.
-5. Evaluate the performance of the proxy model on the unlabeled dataset.
+5. Evaluate the performance of the proxy model.
 6. Is model good enough?    
     - Yes: Save the proxy model and the dataset.
     - No: Select the most informative images to label using active learning.
