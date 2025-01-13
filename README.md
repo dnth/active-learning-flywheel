@@ -165,15 +165,21 @@ graph TD
 ```
 
 ## Benchmarks
+Column description:
+- #Labeled Images: The number of labeled images used to train the model.
+- Evaluation Accuracy: The accuracy of the model on the evaluation set.
+- Train Epochs: The number of epochs used to train the model.
+- Model: The model used to train the model.
+- Source: The source of the results.
 
 ### Imagenette
 
-| #Labeled Images | Evaluation Accuracy | Train Epochs | Model                |
-|-----------------|---------------------|--------------|----------------------|
-| 9469            | 94.90%              | 80           | xse_resnext50        |
-| 9469            | 95.11%              | 200          | xse_resnext50        |
-| 275             | 99.33               | 6            | convnext_small_in22k |
-| 275             | 93.40               | 4            | resnet18             |
+| #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Source |
+|-----------------|---------------------|--------------|----------------------|--------|
+| 9469            | 94.90%              | 80           | xse_resnext50        | [Link](https://github.com/fastai/imagenette) |
+| 9469            | 95.11%              | 200          | xse_resnext50        | [Link](https://github.com/fastai/imagenette) |
+| 275             | 99.33               | 6            | convnext_small_in22k | [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) |
+| 275             | 93.40               | 4            | resnet18             | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
 
 ### Dog Food
 
