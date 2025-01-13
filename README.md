@@ -11,6 +11,12 @@ Active learning at the edge for computer vision.
 
 The goal of this project is to create a framework for the active learning loop for computer vision deployed on edge devices. 
 
+Supported tasks:
+- [X] Image classification
+- [ ] Object detection
+- [ ] Segmentation
+
+
 ## Installation
 
 Get a release from PyPI
