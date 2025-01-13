@@ -66,7 +66,7 @@ pred_df = al.predict(filepaths)
 # Sample low confidence predictions
 uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
 
-# Relabel
+# Label the low confidence predictions
 uncertain_df = al.label(uncertain_df)
 
 # Add newly labeled data to training set
