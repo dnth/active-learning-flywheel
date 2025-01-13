@@ -47,15 +47,12 @@ import pandas as pd
 # Create an active learner instance with a model
 al = ActiveLearner("resnet18")
 
-# Load the dataset into the active learner
+# Load dataset 
 train_df = pd.read_parquet("training_samples.parquet")
 al.load_dataset(df, filepath_col="filepath", label_col="label")
 
-# Train the model
+# Train model
 al.train(epochs=3, lr=1e-3)
-
-# Load evaluation data
-eval_df = pd.read_parquet("evaluation_samples.parquet")
 
 # Evaluate the model on a *labeled* evaluation set
 accuracy = al.evaluate(eval_df, filepath_col="filepath", label_col="label")
@@ -63,15 +60,24 @@ accuracy = al.evaluate(eval_df, filepath_col="filepath", label_col="label")
 # Get predictions from an *unlabeled* set
 pred_df = al.predict(filepaths)
 
-# Sample low confidence predictions
+# Sample low confidence predictions from unlabeled set
 uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
 
 # Launch a Gradio UI to label the low confidence samples
 al.label(uncertain_df, output_filename="uncertain")
+```
 
+![Gradio UI](./assets/labeling_ui.png)
+
+Once complete, the labeled samples will be save into a new df.
+We can now add the newly labeled data to the training set.
+
+```python
 # Add newly labeled data to training set and save as a new file active_labeled
 al.add_to_train_set(labeled_df, output_filename="active_labeled")
 ```
+
+Repeat the process until the model is good enough. Use the dataset to train a larger model and deploy.
 
 ## Workflow
 There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
