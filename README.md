@@ -164,6 +164,16 @@ graph TD
     G --> H[Train and deploy larger model]
 ```
 
+## Benchmarks
+
+### Imagenette
+
+| Dataset    | #Labeled Images | Evaluation Accuracy | Train Epochs | Model                |
+|------------|-----------------|---------------------|--------------|----------------------|
+| imagenette | 9469            | 94.90%              | 80           | xse_resnext50        |
+| imagenette | 9469            | 95.11%              | 200          | xse_resnext50        |
+| imagenette | 275             | 99.33               | 6            | convnext_small_in22k |
+| imagenette | 275             | 93.40               | 4            | resnet18             |resnet18             |
 
 <!-- ## Methodology
 To test out the workflows we will use the [imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette). But this will be applicable to any dataset.
