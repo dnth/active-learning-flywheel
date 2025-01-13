@@ -166,11 +166,11 @@ graph TD
 
 ## Benchmarks
 Column description:
-- #Labeled Images: The number of labeled images used to train the model.
-- Evaluation Accuracy: The accuracy of the model on the evaluation set.
-- Train Epochs: The number of epochs used to train the model.
-- Model: The model used to train the model.
-- Source: The source of the results.
+- `#Labeled Images`: The number of labeled images used to train the model.
+- `Evaluation Accuracy`: The accuracy of the model on the evaluation set.
+- `Train Epochs`: The number of epochs used to train the model.
+- `Model`: The model used to train.
+- `Source`: The source of the results.
 
 ### Imagenette
 
