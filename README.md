@@ -165,7 +165,7 @@ graph TD
 ```
 
 
-## Methodology
+<!-- ## Methodology
 To test out the workflows we will use the [imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette). But this will be applicable to any dataset.
 
 Imagenette is a subset of the ImageNet dataset with 10 classes. We will use this dataset to test out the workflows. Additionally, Imagenette has an existing leaderboard which we can use to evaluate the performance of the models.
@@ -216,4 +216,4 @@ After the first iteration we got 94.57% accuracy on the validation set. See the 
 > [!TIP]
 > | Train Epochs | Number of Images | Validation Accuracy |      Source      |
 > |--------------|-----------------|----------------------|------------------|
-> | 10           | 200             | 94.57%               | First relabeling [notebook](./nbs/03_retrain_model.ipynb) |
+> | 10           | 200             | 94.57%               | First relabeling [notebook](./nbs/03_retrain_model.ipynb) | -->
