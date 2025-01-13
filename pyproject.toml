@@ -7,6 +7,7 @@ requires-python = ">=3.10"
 dependencies = [
     "datasets>=3.2.0",
     "fastai>=2.7.18",
+    "gradio>=5.12.0",
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.5",
     "loguru>=0.7.3",
