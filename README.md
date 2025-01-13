@@ -48,6 +48,8 @@ Be sure to prepared 3 datasets:
 - [unlabeled](./nbs/unlabeled_samples.parquet): A dataframe of unlabeled data which we will sample from using active learning.
 - [eval](./nbs/evaluation_samples.parquet): A dataframe of labeled data which we will use to evaluate the performance of the model.
 
+As a toy example I created the above 3 datasets from the imagenette dataset.
+
 ```python
 from active_vision import ActiveLearner
 import pandas as pd
