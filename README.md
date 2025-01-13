@@ -33,7 +33,7 @@ pip install -e .
 ```
 
 ## Usage
-See the [notebook](./nbs/end-to-end.ipynb) for a complete example.
+See the [notebook](./nbs/04_relabel_loop.ipynb) for a complete example.
 
 Be sure to prepared 3 datasets:
 - train: A dataframe of an existing labeled training dataset.
@@ -49,7 +49,7 @@ al = ActiveLearner("resnet18")
 
 # Load the dataset into the active learner
 train_df = pd.read_parquet("training_samples.parquet")
-al.load_dataset(train_df, "filepath", "label")
+al.load_dataset(df, filepath_col="filepath", label_col="label")
 
 # Train the model
 al.train(epochs=3, lr=1e-3)
@@ -57,20 +57,20 @@ al.train(epochs=3, lr=1e-3)
 # Load evaluation data
 eval_df = pd.read_parquet("evaluation_samples.parquet")
 
-# Evaluate the model on a labeled evaluation set
-accuracy = al.evaluate(eval_df, "filepath", "label")
+# Evaluate the model on a *labeled* evaluation set
+accuracy = al.evaluate(eval_df, filepath_col="filepath", label_col="label")
 
-# Get predictions from an unlabeled set
+# Get predictions from an *unlabeled* set
 pred_df = al.predict(filepaths)
 
 # Sample low confidence predictions
 uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
 
-# Label the low confidence predictions
-uncertain_df = al.label(uncertain_df)
+# Launch a Gradio UI to label the low confidence samples
+al.label(uncertain_df, output_filename="uncertain")
 
-# Add newly labeled data to training set
-al.add_to_train_set(uncertain_df)
+# Add newly labeled data to training set and save as a new file active_labeled
+al.add_to_train_set(labeled_df, output_filename="active_labeled")
 ```
 
 ## Workflow
