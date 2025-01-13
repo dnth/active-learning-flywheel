@@ -232,6 +232,7 @@ class ActiveLearner:
                     df.columns = ["filepath", "label"]
                     df = df.drop_duplicates(subset=["filepath"], keep="last")
                     df.to_parquet(f"{output_filename}.parquet")
+                    gr.Info(f"Annotation saved to {output_filename}.parquet")
                 except Exception as e:
                     logger.error(e)
                     return
