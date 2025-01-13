@@ -12,15 +12,6 @@ Active learning at the edge for computer vision.
 The goal of this project is to create a framework for the active learning loop for computer vision deployed on edge devices. 
 
 ## Installation
-I recommend using [uv](https://docs.astral.sh/uv/) to set up a virtual environment and install the package. You can also use other virtual env of your choice.
-
-If you're using uv:
-
-```bash
-uv venv
-uv sync
-```
-Once the virtual environment is created, you can install the package using pip.
 
 Get a release from PyPI
 ```bash
@@ -33,6 +24,16 @@ git clone https://github.com/dnth/active-vision.git
 cd active-vision
 pip install -e .
 ```
+
+I recommend using [uv](https://docs.astral.sh/uv/) to set up a virtual environment and install the package. You can also use other virtual env of your choice.
+
+If you're using uv:
+
+```bash
+uv venv
+uv sync
+```
+Once the virtual environment is created, you can install the package using pip.
 
 > [!TIP]
 > If you're using uv add a uv before the pip install command to install into your virtual environment. Eg:
