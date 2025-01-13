@@ -90,7 +90,7 @@ al.add_to_train_set(labeled_df, output_filename="active_labeled")
 Repeat the process until the model is good enough. Use the dataset to train a larger model and deploy.
 
 > [!TIP]
-> For the toy dataset, I got to about 93% accuracy on the evaluation set with 200+ images out of 9369. The best performing model on the leaderboard got 95.11% accuracy with 9469 images.
+> For the toy dataset, I got to about 93% accuracy on the evaluation set with 200+ labeled images out of 9369. The best performing model on the leaderboard got 95.11% accuracy with 9469 labeled images.
 > 
 > This took me about 6 iterations of relabeling. Each iteration took about 5 minutes to complete including labeling and model training.
 
