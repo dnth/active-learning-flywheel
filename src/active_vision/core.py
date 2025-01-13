@@ -116,10 +116,11 @@ class ActiveLearner:
         """
         Sample top `num_samples` low confidence samples. Returns a df with filepaths and predicted labels, and confidence scores.
         """
+        logger.info(f"Getting top {num_samples} low confidence samples")
         uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(num_samples)
         return uncertain_df
 
-    def label(self, df: pd.DataFrame):
+    def label(self, df: pd.DataFrame, output_filename: str = "labeled"):
         """
         Launch a labeling interface for the user to label the samples.
         Input is a df with filepaths listing the files to be labeled. Output is a df with filepaths and labels.
@@ -146,6 +147,8 @@ class ActiveLearner:
         document.addEventListener('keypress', shortcuts, false);
         </script>
         """
+
+        logger.info(f"Launching labeling interface for {len(df)} samples")
 
         filepaths = df["filepath"].tolist()
 
@@ -209,7 +212,7 @@ class ActiveLearner:
                     )
 
                 # Save the current annotation
-                with open("labeled.csv", "a") as f:
+                with open(f"{output_filename}.csv", "a") as f:
                     f.write(f"{filepaths[current_idx]},{selected_category}\n")
 
                 # Move to next image if not at the end
@@ -225,12 +228,12 @@ class ActiveLearner:
 
             def convert_csv_to_parquet():
                 try:
-                    df = pd.read_csv("labeled.csv", header=None)
+                    df = pd.read_csv(f"{output_filename}.csv", header=None)
                     df.columns = ["filepath", "label"]
                     df = df.drop_duplicates(subset=["filepath"], keep="last")
-                    df.to_parquet("labeled.parquet")
+                    df.to_parquet(f"{output_filename}.parquet")
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
                     return
 
             back_btn.click(
@@ -255,7 +258,7 @@ class ActiveLearner:
 
         demo.launch(height=1000)
 
-    def add_to_train_set(self, df: pd.DataFrame):
+    def add_to_train_set(self, df: pd.DataFrame, output_filename: str):
         """
         Add samples to the training set.
         """
@@ -263,7 +266,7 @@ class ActiveLearner:
         # new_train_set.drop(columns=["pred_conf"], inplace=True)
         # new_train_set.rename(columns={"pred_label": "label"}, inplace=True)
 
-        len_old = len(self.train_set)
+        # len_old = len(self.train_set)
 
         logger.info(f"Adding {len(new_train_set)} samples to training set")
         self.train_set = pd.concat([self.train_set, new_train_set])
@@ -273,12 +276,15 @@ class ActiveLearner:
         )
         self.train_set.reset_index(drop=True, inplace=True)
 
-        if len(self.train_set) == len_old:
-            logger.warning("No new samples added to training set")
+        self.train_set.to_parquet(f"{output_filename}.parquet")
+        logger.info(f"Saved training set to {output_filename}.parquet")
 
-        elif len_old + len(new_train_set) < len(self.train_set):
-            logger.warning("Some samples were duplicates and removed from training set")
+        # if len(self.train_set) == len_old:
+        #     logger.warning("No new samples added to training set")
 
-        else:
-            logger.info("All new samples added to training set")
-            logger.info(f"Training set now has {len(self.train_set)} samples")
+        # elif len_old + len(new_train_set) < len(self.train_set):
+        #     logger.warning("Some samples were duplicates and removed from training set")
+
+        # else:
+        #     logger.info("All new samples added to training set")
+        #     logger.info(f"Training set now has {len(self.train_set)} samples")
