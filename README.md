@@ -170,6 +170,7 @@ Column description:
 - `Evaluation Accuracy`: The accuracy of the model on the evaluation set.
 - `Train Epochs`: The number of epochs used to train the model.
 - `Model`: The model used to train.
+- `Active Learning`: Whether active learning was used to train the model.
 - `Source`: The source of the results.
 
 ### Imagenette
