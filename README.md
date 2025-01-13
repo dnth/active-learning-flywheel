@@ -19,6 +19,14 @@ The goal of this project is to create a framework for active learning at the edg
 - Experiment tracking: wandb
 
 ## Installation
+I recommend using [uv](https://docs.astral.sh/uv/) to set up a virtual environment and install the package. You can also use other virtual env of your choice.
+
+If you're using uv:
+
+```bash
+uv venv
+uv sync
+```
 
 PyPI
 ```bash
@@ -31,6 +39,12 @@ git clone https://github.com/dnth/active-vision.git
 cd active-vision
 pip install -e .
 ```
+
+> [!TIP]
+> If you're using uv add a uv before the pip install command to install into your virtual environment. Eg:
+> ```bash
+> uv pip install active-vision
+> ```
 
 ## Usage
 See the [notebook](./nbs/04_relabel_loop.ipynb) for a complete example.
