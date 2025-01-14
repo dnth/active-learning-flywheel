@@ -135,6 +135,7 @@ Column description:
 ### Imagenette
 - num classes: 10
 - num images: 9469
+
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
 |-----------------|---------------------|--------------|----------------------|----------------|--------|
 | 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
