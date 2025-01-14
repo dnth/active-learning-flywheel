@@ -131,6 +131,9 @@ class ActiveLearner:
         - entropy: Get top `num_samples` samples with the highest entropy.
         """
 
+        # Remove samples that is already in the training set
+        df = df[~df["filepath"].isin(self.train_set["filepath"])]
+
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
             uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(
