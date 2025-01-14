@@ -61,7 +61,7 @@ uv sync
 Once the virtual environment is created, you can install the package using pip.
 
 > [!TIP]
-> If you're using uv add a uv before the pip install command to install into your virtual environment. Eg:
+> If you're using uv add a `uv` before the pip install command to install into your virtual environment. Eg:
 > ```bash
 > uv pip install active-vision
 > ```
