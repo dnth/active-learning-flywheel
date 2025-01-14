@@ -197,8 +197,8 @@ Column description:
 |-----------------|---------------------|--------------|----------------------|----------------|--------|
 | 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
 | 9469            | 95.11%              | 200          | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
-| 275             | 99.33               | 6            | convnext_small_in22k | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) |
-| 275             | 93.40               | 4            | resnet18             | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
+| 275             | 99.33%               | 6            | convnext_small_in22k | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) |
+| 275             | 93.40%               | 4            | resnet18             | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
 
 ### Dog Food
 
