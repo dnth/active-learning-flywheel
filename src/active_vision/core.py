@@ -115,13 +115,66 @@ class ActiveLearner:
         logger.info(f"Accuracy: {accuracy:.2%}")
         return accuracy
 
-    def sample_uncertain(self, df: pd.DataFrame, num_samples: int):
+    def sample_uncertain(
+        self, df: pd.DataFrame, num_samples: int, strategy: str = "least-confidence"
+    ):
         """
         Sample top `num_samples` low confidence samples. Returns a df with filepaths and predicted labels, and confidence scores.
+
+        Strategies:
+        - least-confidence: Get top `num_samples` low confidence samples.
+        - margin-of-confidence: Get top `num_samples` samples with the smallest margin between the top two predictions.
+        - ratio-of-confidence: Get top `num_samples` samples with the highest ratio between the top two predictions.
+        - entropy: Get top `num_samples` samples with the highest entropy.
         """
-        logger.info(f"Getting top {num_samples} low confidence samples")
-        uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(num_samples)
-        return uncertain_df
+
+        if strategy == "least-confidence":
+            logger.info(f"Getting top {num_samples} low confidence samples")
+            uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(
+                num_samples
+            )
+            return uncertain_df
+
+        # TODO: Implement margin of confidence strategy
+        elif strategy == "margin-of-confidence":
+            logger.error("Margin of confidence strategy not implemented")
+            raise NotImplementedError("Margin of confidence strategy not implemented")
+
+        # TODO: Implement ratio of confidence strategy
+        elif strategy == "ratio-of-confidence":
+            logger.error("Ratio of confidence strategy not implemented")
+            raise NotImplementedError("Ratio of confidence strategy not implemented")
+
+        # TODO: Implement entropy strategy
+        elif strategy == "entropy":
+            logger.error("Entropy strategy not implemented")
+            raise NotImplementedError("Entropy strategy not implemented")
+
+        else:
+            logger.error(f"Unknown strategy: {strategy}")
+            raise ValueError(f"Unknown strategy: {strategy}")
+
+    def sample_diverse(self, df: pd.DataFrame, num_samples: int):
+        """
+        Sample top `num_samples` diverse samples. Returns a df with filepaths and predicted labels, and confidence scores.
+
+        Strategies:
+        - model-based-outlier: Get top `num_samples` samples with lowest activation of the model's last layer.
+        - cluster-based: Get top `num_samples` samples with the highest distance to the nearest neighbor.
+        - representative: Get top `num_samples` samples with the highest distance to the centroid of the training set.
+        """
+        logger.error("Diverse sampling strategy not implemented")
+        raise NotImplementedError("Diverse sampling strategy not implemented")
+
+    def sample_random(self, df: pd.DataFrame, num_samples: int, seed: int = None):
+        """
+        Sample `num_samples` random samples. Returns a df with filepaths and predicted labels, and confidence scores.
+        """
+
+        logger.info(f"Sampling {num_samples} random samples")
+        if seed is not None:
+            logger.info(f"Using seed: {seed}")
+        return df.sample(n=num_samples, random_state=seed)
 
     def label(self, df: pd.DataFrame, output_filename: str = "labeled"):
         """
