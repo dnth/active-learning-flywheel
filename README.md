@@ -16,6 +16,19 @@ Supported tasks:
 - [ ] Object detection
 - [ ] Segmentation
 
+Supported Active Learning Strategies:
+
+Uncertainty Sampling:
+- [X] Random sampling
+- [X] Least confidence
+- [ ] Margin of confidence
+- [ ] Ratio of confidence
+- [ ] Entropy
+
+Diverse Sampling:
+- [ ] Model-based outlier
+- [ ] Cluster-based
+- [ ] Representative
 
 ## Installation
 
