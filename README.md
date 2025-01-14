@@ -11,12 +11,17 @@ Active learning at the edge for computer vision.
 
 The goal of this project is to create a framework for the active learning loop for computer vision deployed on edge devices. 
 
-Supported tasks:
+### Supported tasks:
 - [X] Image classification
 - [ ] Object detection
 - [ ] Segmentation
 
-Supported Active Learning Strategies:
+### Supported models:
+- [X] Torchvision models
+- [X] Timm models
+- [ ] Hugging Face models
+
+### Supported Active Learning Strategies:
 
 Uncertainty Sampling:
 - [X] Random sampling
@@ -30,7 +35,7 @@ Diverse Sampling:
 - [ ] Cluster-based
 - [ ] Representative
 
-## Installation
+## 📦 Installation
 
 Get a release from PyPI
 ```bash
@@ -60,7 +65,7 @@ Once the virtual environment is created, you can install the package using pip.
 > uv pip install active-vision
 > ```
 
-## Usage
+## 🛠️ Usage
 See the [notebook](./nbs/04_relabel_loop.ipynb) for a complete example.
 
 Be sure to prepared 3 datasets:
@@ -116,7 +121,7 @@ Repeat the process until the model is good enough. Use the dataset to train a la
 >
 > But using the dataset of 200+ images, I trained a more capable model (convnext_small_in22k) and got 99.3% accuracy on the evaluation set. See the [notebook](./nbs/05_retrain_larger.ipynb) for more details.
 
-## Workflow
+## ➿ Workflow
 There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
 
 ### With unlabeled data
@@ -177,7 +182,7 @@ graph TD
     G --> H[Train and deploy larger model]
 ```
 
-## Benchmarks
+## 📊 Benchmarks
 Column description:
 - `#Labeled Images`: The number of labeled images used to train the model.
 - `Evaluation Accuracy`: The accuracy of the model on the evaluation set.
