@@ -25,13 +25,13 @@ The goal of this project is to create a framework for the active learning loop f
 ### Supported Active Learning Strategies:
 
 Uncertainty Sampling:
-- [X] Random sampling
 - [X] Least confidence
 - [ ] Margin of confidence
 - [ ] Ratio of confidence
 - [ ] Entropy
 
 Diverse Sampling:
+- [X] Random sampling
 - [ ] Model-based outlier
 - [ ] Cluster-based
 - [ ] Representative
