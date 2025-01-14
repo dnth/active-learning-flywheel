@@ -155,7 +155,7 @@ Column description:
 |-----------------|---------------------|--------------|-------|----------------|--------|
 | 3680             | 95.40%              | 5           | vit-base-patch16-224   | ❌              | [Link](https://huggingface.co/walterg777/vit-base-oxford-iiit-pets) |
 | 612             | 90.26%              | 11            | convnext_small_in22k              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/02_train.ipynb) |
-| 612             | 91.76%              | 11            | vit-base-patch16-224              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/03_train_vit.ipynb) |
+| 612             | 91.38%              | 11            | vit-base-patch16-224              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/03_train_vit.ipynb) |
 
 
 
