@@ -1,6 +1,5 @@
 import pandas as pd
 from loguru import logger
-from fastai.vision.models import resnet18, resnet34
 from fastai.callback.all import ShowGraphCallback
 from fastai.vision.all import (
     ImageDataLoaders,
@@ -17,6 +16,7 @@ import torch
 import torch.nn.functional as F
 
 import warnings
+from typing import Callable
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -25,13 +25,14 @@ class ActiveLearner:
     def __init__(self, model_name: str):
         self.model = self.load_model(model_name)
 
-    def load_model(self, model_name: str):
-        models = {"resnet18": resnet18, "resnet34": resnet34}
-        logger.info(f"Loading model {model_name}")
-        if model_name not in models:
-            logger.error(f"Model {model_name} not found")
-            raise ValueError(f"Model {model_name} not found")
-        return models[model_name]
+    def load_model(self, model_name: str | Callable):
+        if isinstance(model_name, Callable):
+            logger.info(f"Loading fasai model {model_name}")
+            return model_name
+
+        if isinstance(model_name, str):
+            logger.info(f"Loading timm model {model_name}")
+            return model_name
 
     def load_dataset(
         self,
@@ -54,7 +55,9 @@ class ActiveLearner:
             label_col=label_col,
             bs=batch_size,
             item_tfms=Resize(image_size),
-            batch_tfms=aug_transforms(size=image_size, min_scale=0.75),
+            batch_tfms=aug_transforms(
+                size=image_size, min_scale=0.75
+            ),  # These augs might not apply to all datasets. TODO: Provide option to override.
         )
         logger.info("Creating learner")
         self.learn = vision_learner(self.dls, self.model, metrics=accuracy).to_fp16()

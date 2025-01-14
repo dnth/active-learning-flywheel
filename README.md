@@ -17,6 +17,7 @@ The goal of this project is to create a framework for the active learning loop f
 - [ ] Segmentation
 
 ### Supported models:
+- [X] Fastai models
 - [X] Torchvision models
 - [X] Timm models
 - [ ] Hugging Face models
