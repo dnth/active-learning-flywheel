@@ -27,7 +27,7 @@ class ActiveLearner:
 
     def load_model(self, model_name: str | Callable):
         if isinstance(model_name, Callable):
-            logger.info(f"Loading fasai model {model_name}")
+            logger.info(f"Loading fastai model {model_name.__name__}")
             return model_name
 
         if isinstance(model_name, str):
