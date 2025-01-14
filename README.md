@@ -121,6 +121,34 @@ Repeat the process until the model is good enough. Use the dataset to train a la
 >
 > But using the dataset of 200+ images, I trained a more capable model (convnext_small_in22k) and got 99.3% accuracy on the evaluation set. See the [notebook](./nbs/05_retrain_larger.ipynb) for more details.
 
+
+## 📊 Benchmarks
+Column description:
+- `#Labeled Images`: The number of labeled images used to train the model.
+- `Evaluation Accuracy`: The accuracy of the model on the evaluation set.
+- `Train Epochs`: The number of epochs used to train the model.
+- `Model`: The model used to train.
+- `Active Learning`: Whether active learning was used to train the model.
+- `Source`: The source of the results.
+
+### Imagenette
+
+| #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
+|-----------------|---------------------|--------------|----------------------|----------------|--------|
+| 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
+| 9469            | 95.11%              | 200          | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
+| 275             | 99.33%               | 6            | convnext_small_in22k | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) |
+| 275             | 93.40%               | 4            | resnet18             | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
+
+### Dog Food
+
+| #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
+|-----------------|---------------------|--------------|-------|----------------|--------|
+| 2100            | 99.70%              | ?            | ViT   | ❌             | [Link](https://huggingface.co/abhishek/autotrain-dog-vs-food) |
+| 160             | 100.00%             | 6            | convnext_small_in22k   | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/02_train.ipynb) |
+| 160             | 97.60%              | 4            | resnet18              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/01_label.ipynb) |
+
+
 ## ➿ Workflow
 There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
 
@@ -182,31 +210,7 @@ graph TD
     G --> H[Train and deploy larger model]
 ```
 
-## 📊 Benchmarks
-Column description:
-- `#Labeled Images`: The number of labeled images used to train the model.
-- `Evaluation Accuracy`: The accuracy of the model on the evaluation set.
-- `Train Epochs`: The number of epochs used to train the model.
-- `Model`: The model used to train.
-- `Active Learning`: Whether active learning was used to train the model.
-- `Source`: The source of the results.
 
-### Imagenette
-
-| #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
-|-----------------|---------------------|--------------|----------------------|----------------|--------|
-| 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
-| 9469            | 95.11%              | 200          | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
-| 275             | 99.33%               | 6            | convnext_small_in22k | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) |
-| 275             | 93.40%               | 4            | resnet18             | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
-
-### Dog Food
-
-| #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
-|-----------------|---------------------|--------------|-------|----------------|--------|
-| 2100            | 99.70%              | ?            | ViT   | ❌             | [Link](https://huggingface.co/abhishek/autotrain-dog-vs-food) |
-| 160             | 100.00%             | 6            | convnext_small_in22k   | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/02_train.ipynb) |
-| 160             | 97.60%              | 4            | resnet18              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/01_label.ipynb) |
 
 <!-- ## Methodology
 To test out the workflows we will use the [imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette). But this will be applicable to any dataset.
