@@ -68,10 +68,10 @@ Once the virtual environment is created, you can install the package using pip.
 ## 🛠️ Usage
 See the [notebook](./nbs/04_relabel_loop.ipynb) for a complete example.
 
-Be sure to prepared 3 datasets:
-- [initial_samples](./nbs/initial_samples.parquet): A dataframe of an existing labeled training dataset to seed the training set.
-- [unlabeled](./nbs/unlabeled_samples.parquet): A dataframe of unlabeled data which we will sample from using active learning.
-- [eval](./nbs/evaluation_samples.parquet): A dataframe of labeled data which we will use to evaluate the performance of the model.
+Be sure to prepared 3 subsets of the dataset:
+- [Initial samples](./nbs/initial_samples.parquet): A dataframe of a labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.
+- [Unlabeled samples](./nbs/unlabeled_samples.parquet): A dataframe of unlabeled data which we will sample from using active learning strategies.
+- [Evaluation samples](./nbs/evaluation_samples.parquet): A dataframe of labeled data which we will use to evaluate the performance of the model. This is the test data, do not use it for active learning. Split this out in the beginning.
 
 As a toy example I created the above 3 datasets from the imagenette dataset.
 
