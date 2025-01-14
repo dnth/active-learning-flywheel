@@ -133,7 +133,8 @@ Column description:
 - `Source`: The source of the results.
 
 ### Imagenette
-
+- num classes: 10
+- num images: 9469
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
 |-----------------|---------------------|--------------|----------------------|----------------|--------|
 | 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
@@ -142,6 +143,8 @@ Column description:
 | 275             | 93.40%               | 4            | resnet18             | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
 
 ### Dog Food
+- num classes: 2
+- num images: 2100
 
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
 |-----------------|---------------------|--------------|-------|----------------|--------|
@@ -150,6 +153,8 @@ Column description:
 | 160             | 97.60%              | 4            | resnet18              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/01_label.ipynb) |
 
 ### Oxford-IIIT Pet
+- num classes: 37
+- num images: 3680
 
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
 |-----------------|---------------------|--------------|-------|----------------|--------|
