@@ -136,6 +136,8 @@ Column description:
 - num classes: 10
 - num images: 9469
 
+For the active learning rows, the starting number of labeled images: 100 (10 per class)
+
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
 |-----------------|---------------------|--------------|----------------------|----------------|--------|
 | 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
@@ -147,6 +149,8 @@ Column description:
 - num classes: 2
 - num images: 2100
 
+For the active learning rows, the starting number of labeled images: 20 (10 per class)
+
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
 |-----------------|---------------------|--------------|-------|----------------|--------|
 | 2100            | 99.70%              | ?            | vit-base-patch16-224   | ❌             | [Link](https://huggingface.co/abhishek/autotrain-dog-vs-food) |
@@ -156,6 +160,8 @@ Column description:
 ### Oxford-IIIT Pet
 - num classes: 37
 - num images: 3680
+
+For the active learning rows, the starting number of labeled images: 370 (10 per class)
 
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
 |-----------------|---------------------|--------------|-------|----------------|--------|
