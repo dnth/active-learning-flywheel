@@ -7,7 +7,7 @@
   <img src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/logo.png" alt="active-vision">
 </p>
 
-The goal of this project is to create a framework for the active learning loop for computer vision. The diagram below shows the workflow.
+The goal of this project is to create a framework for the active learning loop for computer vision. The diagram below shows a general workflow of how the active learning loop works.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/data_flywheel.gif" alt="active-vision">
