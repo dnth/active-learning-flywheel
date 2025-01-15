@@ -174,10 +174,12 @@ For the active learning rows, the starting number of labeled images: 370 (10 per
 
 
 ## ➿ Workflow
-There are two workflows for active learning at the edge that we can use depending on the availability of labeled data.
+This section describes a more detailed workflow for active learning. There are two workflows for active learning that we can use depending on the availability of labeled data.
 
 ### With unlabeled data
-If we have no labeled data, we can use active learning to iteratively improve the model and build a labeled dataset.
+If we have no labeled data, the goal of the active learning loop is to build a resonably good labeled dataset to train a larger model.
+
+Steps:
 
 1. Load a small proxy model.
 2. Label an initial dataset. If there is none, you'll have to label some images.
@@ -209,7 +211,9 @@ graph TD
 ```
     
 ### With labeled data
-If we have a labeled dataset, we can use active learning to iteratively improve the dataset and the model by fixing the most important label errors.
+If we already have a labeled dataset, the goal of the active learning loop is to iteratively improve the dataset and the model by fixing the most important label errors.
+
+Steps:
 
 1. Load a small proxy model.
 2. Train the proxy model on the labeled dataset.
@@ -219,7 +223,6 @@ If we have a labeled dataset, we can use active learning to iteratively improve 
 6. Repeat steps 2-5 until the dataset is good enough.
 7. Save the labeled dataset.
 8. Train a larger model on the saved labeled dataset.
-
 
 
 ```mermaid
