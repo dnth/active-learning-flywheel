@@ -218,7 +218,7 @@ Steps:
 1. Load a small proxy model.
 2. Train the proxy model on the labeled dataset.
 3. Run inference on the entire labeled dataset.
-4. Get the most important label errors with active learning.
+4. Get the most impactful label errors with active learning.
 5. Fix the label errors.
 6. Repeat steps 2-5 until the dataset is good enough.
 7. Save the labeled dataset.
@@ -229,7 +229,7 @@ Steps:
 graph TD
     A[Load a small proxy model] --> B[Train proxy model on labeled dataset]
     B --> C[Run inference on labeled dataset]
-    C --> D[Get important label errors using active learning]
+    C --> D[Get label errors using active learning]
     D --> E[Fix label errors]
     E --> F{Dataset good enough?}
     F -->|No| B
