@@ -11,6 +11,10 @@ Active learning at the edge for computer vision.
 
 The goal of this project is to create a framework for the active learning loop for computer vision deployed on edge devices. 
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/data_flywheel.gif" alt="active-vision">
+</p>
+
 ### Supported tasks:
 - [X] Image classification
 - [ ] Object detection
