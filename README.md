@@ -105,7 +105,7 @@ uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
 al.label(uncertain_df, output_filename="uncertain")
 ```
 
-![Gradio UI](./assets/labeling_ui.png)
+![Gradio UI](https://raw.githubusercontent.com/dnth/active-vision/main/assets/labeling_ui.png)
 
 Once complete, the labeled samples will be save into a new df.
 We can now add the newly labeled data to the training set.
