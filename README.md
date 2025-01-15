@@ -126,6 +126,8 @@ Repeat the process until the model is good enough. Use the dataset to train a la
 
 
 ## 📊 Benchmarks
+This section contains the benchmarks I ran using the active learning loop on various datasets.
+
 Column description:
 - `#Labeled Images`: The number of labeled images used to train the model.
 - `Evaluation Accuracy`: The accuracy of the model on the evaluation set.
@@ -138,7 +140,16 @@ Column description:
 - num classes: 10
 - num images: 9469
 
-For the active learning rows, the starting number of labeled images: 100 (10 per class)
+To start the active learning loop, I labeled 100 images (10 images from each class) and iteratively relabeled the most informative images until I hit 275 labeled images. 
+
+The active learning loop is a iterative process and can keep going until you hit a stopping point. You can decide your own stopping point based on your use case. It could be:
+- You ran out of data to label.
+- You hit a performance goal.
+- You hit a budget.
+- Other criteria.
+
+For this dataset,I decided to stop the active learning loop at 275 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. 
+
 
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
 |-----------------|---------------------|--------------|----------------------|----------------|--------|
@@ -151,7 +162,9 @@ For the active learning rows, the starting number of labeled images: 100 (10 per
 - num classes: 2
 - num images: 2100
 
-For the active learning rows, the starting number of labeled images: 20 (10 per class)
+To start the active learning loop, I labeled 20 images (10 images from each class) and iteratively relabeled the most informative images until I hit 160 labeled images. 
+
+I decided to stop the active learning loop at 160 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. You can decide your own stopping point based on your use case.
 
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
 |-----------------|---------------------|--------------|-------|----------------|--------|
@@ -163,7 +176,9 @@ For the active learning rows, the starting number of labeled images: 20 (10 per 
 - num classes: 37
 - num images: 3680
 
-For the active learning rows, the starting number of labeled images: 370 (10 per class)
+To start the active learning loop, I labeled 370 images (10 images from each class) and iteratively relabeled the most informative images until I hit 612 labeled images. 
+
+I decided to stop the active learning loop at 612 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. You can decide your own stopping point based on your use case.
 
 | #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
 |-----------------|---------------------|--------------|-------|----------------|--------|
