@@ -42,6 +42,7 @@ class ActiveLearner:
         valid_pct: float = 0.2,
         batch_size: int = 16,
         image_size: int = 224,
+        batch_tfms: Callable = None,
     ):
         logger.info(f"Loading dataset from {filepath_col} and {label_col}")
         self.train_set = df.copy()
@@ -55,9 +56,7 @@ class ActiveLearner:
             label_col=label_col,
             bs=batch_size,
             item_tfms=Resize(image_size),
-            batch_tfms=aug_transforms(
-                size=image_size, min_scale=0.75
-            ),  # These augs might not apply to all datasets. TODO: Provide option to override.
+            batch_tfms=batch_tfms,
         )
         logger.info("Creating learner")
         self.learn = vision_learner(self.dls, self.model, metrics=accuracy).to_fp16()
