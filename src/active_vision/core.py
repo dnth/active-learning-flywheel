@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class ActiveLearner:
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str | Callable):
         self.model = self.load_model(model_name)
 
     def load_model(self, model_name: str | Callable):
