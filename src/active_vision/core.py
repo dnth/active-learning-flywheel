@@ -258,15 +258,15 @@ class ActiveLearner:
                 return;
             }
             
-            if (e.key.toLowerCase() == "w") {
+            if (e.key === "ArrowUp" || e.key === "Enter") {
                 document.getElementById("submit_btn").click();
-            } else if (e.key.toLowerCase() == "d") {
+            } else if (e.key === "ArrowRight") {
                 document.getElementById("next_btn").click();
-            } else if (e.key.toLowerCase() == "a") {
+            } else if (e.key === "ArrowLeft") {
                 document.getElementById("back_btn").click();
             }
         }
-        document.addEventListener('keypress', shortcuts, false);
+        document.addEventListener('keydown', shortcuts, false);
         </script>
         """
 
@@ -308,14 +308,14 @@ class ActiveLearner:
             )
 
             with gr.Row():
-                back_btn = gr.Button("← Previous (A)", elem_id="back_btn")
+                back_btn = gr.Button("← Previous", elem_id="back_btn")
                 submit_btn = gr.Button(
-                    "Submit (W)",
+                    "Submit (↑/Enter)",
                     variant="primary",
                     elem_id="submit_btn",
                     interactive=False,
                 )
-                next_btn = gr.Button("Next → (D)", elem_id="next_btn")
+                next_btn = gr.Button("Next →", elem_id="next_btn")
 
             progress = gr.Slider(
                 minimum=0,
@@ -326,6 +326,73 @@ class ActiveLearner:
             )
 
             finish_btn = gr.Button("Finish Labeling", variant="primary")
+
+            with gr.Accordion("Zero-Shot Inference", open=False) as zero_shot_accordion:
+                gr.Markdown("""
+                Uses a VLM to predict the label of the image.
+                """)
+
+                import xinfer
+                from xinfer.model_registry import model_registry
+                from xinfer.types import ModelInputOutput
+
+                # Get models and filter for image-to-text models
+                all_models = model_registry.list_models()
+                model_list = [
+                    model.id
+                    for model in all_models
+                    if model.input_output == ModelInputOutput.IMAGE_TEXT_TO_TEXT
+                ]
+
+                with gr.Row():
+                    with gr.Row():
+                        model_dropdown = gr.Dropdown(
+                            choices=model_list,
+                            label="Select a model",
+                            value="vikhyatk/moondream2",
+                        )
+                        device_dropdown = gr.Dropdown(
+                            choices=["cuda", "cpu"],
+                            label="Device",
+                            value="cuda" if torch.cuda.is_available() else "cpu",
+                        )
+                        dtype_dropdown = gr.Dropdown(
+                            choices=["float32", "float16", "bfloat16"],
+                            label="Data Type",
+                            value="float16" if torch.cuda.is_available() else "float32",
+                        )
+
+                with gr.Column():
+                    prompt_textbox = gr.Textbox(
+                        label="Prompt",
+                        lines=3,
+                        value=f"Classify the image into one of the following categories: {self.class_names}",
+                        interactive=True,
+                    )
+                    inference_btn = gr.Button("Run Inference", variant="primary")
+
+                    result_textbox = gr.Textbox(
+                        label="Result",
+                        lines=3,
+                        interactive=False,
+                    )
+
+            def run_zero_shot_inference(prompt, model, device, dtype, current_filename):
+                model = xinfer.create_model(model, device=device, dtype=dtype)
+                result = model.infer(current_filename, prompt).text
+                return result
+
+            inference_btn.click(
+                fn=run_zero_shot_inference,
+                inputs=[
+                    prompt_textbox,
+                    model_dropdown,
+                    device_dropdown,
+                    dtype_dropdown,
+                    filename,
+                ],
+                outputs=[result_textbox],
+            )
 
             def update_submit_btn(choice):
                 return gr.Button(interactive=choice is not None)
