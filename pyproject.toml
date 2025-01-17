@@ -5,6 +5,7 @@ description = "Active learning for edge vision."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "accelerate>=1.2.1",
     "datasets>=3.2.0",
     "fastai>=2.7.18",
     "gradio>=5.12.0",
@@ -13,4 +14,6 @@ dependencies = [
     "loguru>=0.7.3",
     "seaborn>=0.13.2",
     "timm>=1.0.13",
+    "transformers>=4.48.0",
+    "xinfer>=0.3.2",
 ]
