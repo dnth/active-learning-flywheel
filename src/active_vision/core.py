@@ -371,10 +371,6 @@ class ActiveLearner:
         Add samples to the training set.
         """
         new_train_set = df.copy()
-        # new_train_set.drop(columns=["pred_conf"], inplace=True)
-        # new_train_set.rename(columns={"pred_label": "label"}, inplace=True)
-
-        # len_old = len(self.train_set)
 
         logger.info(f"Adding {len(new_train_set)} samples to training set")
         self.train_set = pd.concat([self.train_set, new_train_set])
@@ -387,12 +383,3 @@ class ActiveLearner:
         self.train_set.to_parquet(f"{output_filename}.parquet")
         logger.info(f"Saved training set to {output_filename}.parquet")
 
-        # if len(self.train_set) == len_old:
-        #     logger.warning("No new samples added to training set")
-
-        # elif len_old + len(new_train_set) < len(self.train_set):
-        #     logger.warning("Some samples were duplicates and removed from training set")
-
-        # else:
-        #     logger.info("All new samples added to training set")
-        #     logger.info(f"Training set now has {len(self.train_set)} samples")
