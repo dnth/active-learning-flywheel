@@ -11,6 +11,27 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class ActiveLearner:
+    """
+    Active Learning framework for computer vision tasks.
+
+    Attributes:
+        Model Related:
+            model: The base model architecture (str or Callable)
+            learn: fastai Learner object for training
+            lrs: Learning rate finder results
+
+        Data Related:
+            train_set (pd.DataFrame): Training dataset
+            eval_set (pd.DataFrame): Evaluation dataset with ground truth labels
+            dls: fastai DataLoaders object
+            class_names: List of class names from the dataset
+            num_classes (int): Number of classes in the dataset
+
+        Prediction Related:
+            pred_df (pd.DataFrame): Predictions on a dataframe
+            eval_df (pd.DataFrame): Predictions on evaluation data
+    """
+
     def __init__(self, model_name: str | Callable):
         self.model = self.load_model(model_name)
 
@@ -149,7 +170,7 @@ class ActiveLearner:
         - entropy: Get top `num_samples` samples with the highest entropy.
         """
 
-        # Remove samples that is already in the training set 
+        # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
         if strategy == "least-confidence":
