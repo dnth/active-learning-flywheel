@@ -50,6 +50,7 @@ class ActiveLearner:
         logger.info("Creating learner")
         self.learn = vision_learner(self.dls, self.model, metrics=accuracy).to_fp16()
         self.class_names = self.dls.vocab
+        self.num_classes = self.dls.c
         logger.info("Done. Ready to train.")
 
     def show_batch(
@@ -148,12 +149,18 @@ class ActiveLearner:
         - entropy: Get top `num_samples` samples with the highest entropy.
         """
 
-        # Remove samples that is already in the training set
-        df = df[~df["filepath"].isin(self.train_set["filepath"])]
+        # Remove samples that is already in the training set 
+        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
-            uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(
+
+            df.loc[:, "uncertainty_score"] = 1 - (df["pred_conf"]) / (
+                self.num_classes - (self.num_classes - 1)
+            )
+
+            # Sort by descending uncertainty score
+            uncertain_df = df.sort_values(by="uncertainty_score", ascending=False).head(
                 num_samples
             )
             return uncertain_df
