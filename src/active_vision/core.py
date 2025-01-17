@@ -63,8 +63,25 @@ class ActiveLearner:
         self.class_names = self.dls.vocab
         logger.info("Done. Ready to train.")
 
-    def show_batch(self):
-        self.dls.show_batch()
+    def show_batch(
+        self,
+        num_samples: int = 9,
+        unique: bool = False,
+        num_rows: int = None,
+        num_cols: int = None,
+    ):
+        """
+        Show a batch of images from the dataset.
+
+        Args:
+            num_samples: Number of samples to show.
+            unique: Whether to show unique samples.
+            num_rows: Number of rows in the grid.
+            num_cols: Number of columns in the grid.
+        """
+        self.dls.show_batch(
+            max_n=num_samples, unique=unique, nrows=num_rows, ncols=num_cols
+        )
 
     def lr_find(self):
         logger.info("Finding optimal learning rate")
