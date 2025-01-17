@@ -1,17 +1,6 @@
 import pandas as pd
 from loguru import logger
-from fastai.callback.all import ShowGraphCallback
-from fastai.vision.all import (
-    ImageDataLoaders,
-    aug_transforms,
-    Resize,
-    vision_learner,
-    accuracy,
-    valley,
-    slide,
-    minimum,
-    steep,
-)
+from fastai.vision.all import *
 import torch
 import torch.nn.functional as F
 
@@ -88,9 +77,21 @@ class ActiveLearner:
         self.lrs = self.learn.lr_find(suggest_funcs=(minimum, steep, valley, slide))
         logger.info(f"Optimal learning rate: {self.lrs.valley}")
 
-    def train(self, epochs: int, lr: float):
-        logger.info(f"Training for {epochs} epochs with learning rate: {lr}")
-        self.learn.fine_tune(epochs, lr, cbs=[ShowGraphCallback()])
+    def train(self, epochs: int, lr: float, head_tuning_epochs: int = 1):
+        """
+        Train the model.
+
+        Args:
+            epochs: Number of epochs to train for.
+            lr: Learning rate.
+            head_tuning_epochs: Number of epochs to train the head.
+        """
+        logger.info(f"Training head for {head_tuning_epochs} epochs")
+        logger.info(f"Training model end-to-end for {epochs} epochs")
+        logger.info(f"Learning rate: {lr} with one-cycle learning rate scheduler")
+        self.learn.fine_tune(
+            epochs, lr, freeze_epochs=head_tuning_epochs, cbs=[ShowGraphCallback()]
+        )
 
     def predict(self, filepaths: list[str], batch_size: int = 16):
         """
