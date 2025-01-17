@@ -11,6 +11,27 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class ActiveLearner:
+    """
+    Active Learning framework for computer vision tasks.
+
+    Attributes:
+        Model Related:
+            model: The base model architecture (str or Callable)
+            learn: fastai Learner object for training
+            lrs: Learning rate finder results
+
+        Data Related:
+            train_set (pd.DataFrame): Training dataset
+            eval_set (pd.DataFrame): Evaluation dataset with ground truth labels
+            dls: fastai DataLoaders object
+            class_names: List of class names from the dataset
+            num_classes (int): Number of classes in the dataset
+
+        Prediction Related:
+            pred_df (pd.DataFrame): Predictions on a dataframe
+            eval_df (pd.DataFrame): Predictions on evaluation data
+    """
+
     def __init__(self, model_name: str | Callable):
         self.model = self.load_model(model_name)
 
@@ -32,6 +53,7 @@ class ActiveLearner:
         batch_size: int = 16,
         image_size: int = 224,
         batch_tfms: Callable = None,
+        learner_path: str = None,
     ):
         logger.info(f"Loading dataset from {filepath_col} and {label_col}")
         self.train_set = df.copy()
@@ -47,8 +69,22 @@ class ActiveLearner:
             item_tfms=Resize(image_size),
             batch_tfms=batch_tfms,
         )
-        logger.info("Creating learner")
-        self.learn = vision_learner(self.dls, self.model, metrics=accuracy).to_fp16()
+
+        if learner_path:
+            logger.info(f"Loading learner from {learner_path}")
+            gpu_available = torch.cuda.is_available()
+            if gpu_available:
+                logger.info(f"Loading learner on GPU.")
+            else:
+                logger.info(f"Loading learner on CPU.")
+
+            self.learn = load_learner(learner_path, cpu=not gpu_available)
+        else:
+            logger.info("Creating learner")
+            self.learn = vision_learner(
+                self.dls, self.model, metrics=accuracy
+            ).to_fp16()
+
         self.class_names = self.dls.vocab
         self.num_classes = self.dls.c
         logger.info("Done. Ready to train.")
@@ -149,7 +185,7 @@ class ActiveLearner:
         - entropy: Get top `num_samples` samples with the highest entropy.
         """
 
-        # Remove samples that is already in the training set 
+        # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
         if strategy == "least-confidence":
@@ -222,15 +258,15 @@ class ActiveLearner:
                 return;
             }
             
-            if (e.key.toLowerCase() == "w") {
+            if (e.key === "ArrowUp" || e.key === "Enter") {
                 document.getElementById("submit_btn").click();
-            } else if (e.key.toLowerCase() == "d") {
+            } else if (e.key === "ArrowRight") {
                 document.getElementById("next_btn").click();
-            } else if (e.key.toLowerCase() == "a") {
+            } else if (e.key === "ArrowLeft") {
                 document.getElementById("back_btn").click();
             }
         }
-        document.addEventListener('keypress', shortcuts, false);
+        document.addEventListener('keydown', shortcuts, false);
         </script>
         """
 
@@ -241,24 +277,45 @@ class ActiveLearner:
         with gr.Blocks(head=shortcut_js) as demo:
             current_index = gr.State(value=0)
 
-            filename = gr.Textbox(
-                label="Filename", value=filepaths[0], interactive=False
-            )
-
             image = gr.Image(
                 type="filepath", label="Image", value=filepaths[0], height=500
             )
-            category = gr.Radio(choices=self.class_names, label="Select Category")
 
             with gr.Row():
-                back_btn = gr.Button("← Previous (A)", elem_id="back_btn")
+                filename = gr.Textbox(
+                    label="Filename", value=filepaths[0], interactive=False
+                )
+
+                pred_label = gr.Textbox(
+                    label="Predicted Label",
+                    value=df["pred_label"].iloc[0]
+                    if "pred_label" in df.columns
+                    else "",
+                    interactive=False,
+                )
+                pred_conf = gr.Textbox(
+                    label="Confidence",
+                    value=f"{df['pred_conf'].iloc[0]:.2%}"
+                    if "pred_conf" in df.columns
+                    else "",
+                    interactive=False,
+                )
+
+            category = gr.Radio(
+                choices=self.class_names,
+                label="Select Category",
+                value=df["pred_label"].iloc[0] if "pred_label" in df.columns else None,
+            )
+
+            with gr.Row():
+                back_btn = gr.Button("← Previous", elem_id="back_btn")
                 submit_btn = gr.Button(
-                    "Submit (W)",
+                    "Submit (↑/Enter)",
                     variant="primary",
                     elem_id="submit_btn",
                     interactive=False,
                 )
-                next_btn = gr.Button("Next → (D)", elem_id="next_btn")
+                next_btn = gr.Button("Next →", elem_id="next_btn")
 
             progress = gr.Slider(
                 minimum=0,
@@ -270,6 +327,73 @@ class ActiveLearner:
 
             finish_btn = gr.Button("Finish Labeling", variant="primary")
 
+            with gr.Accordion("Zero-Shot Inference", open=False) as zero_shot_accordion:
+                gr.Markdown("""
+                Uses a VLM to predict the label of the image.
+                """)
+
+                import xinfer
+                from xinfer.model_registry import model_registry
+                from xinfer.types import ModelInputOutput
+
+                # Get models and filter for image-to-text models
+                all_models = model_registry.list_models()
+                model_list = [
+                    model.id
+                    for model in all_models
+                    if model.input_output == ModelInputOutput.IMAGE_TEXT_TO_TEXT
+                ]
+
+                with gr.Row():
+                    with gr.Row():
+                        model_dropdown = gr.Dropdown(
+                            choices=model_list,
+                            label="Select a model",
+                            value="vikhyatk/moondream2",
+                        )
+                        device_dropdown = gr.Dropdown(
+                            choices=["cuda", "cpu"],
+                            label="Device",
+                            value="cuda" if torch.cuda.is_available() else "cpu",
+                        )
+                        dtype_dropdown = gr.Dropdown(
+                            choices=["float32", "float16", "bfloat16"],
+                            label="Data Type",
+                            value="float16" if torch.cuda.is_available() else "float32",
+                        )
+
+                with gr.Column():
+                    prompt_textbox = gr.Textbox(
+                        label="Prompt",
+                        lines=3,
+                        value=f"Classify the image into one of the following categories: {self.class_names}",
+                        interactive=True,
+                    )
+                    inference_btn = gr.Button("Run Inference", variant="primary")
+
+                    result_textbox = gr.Textbox(
+                        label="Result",
+                        lines=3,
+                        interactive=False,
+                    )
+
+            def run_zero_shot_inference(prompt, model, device, dtype, current_filename):
+                model = xinfer.create_model(model, device=device, dtype=dtype)
+                result = model.infer(current_filename, prompt).text
+                return result
+
+            inference_btn.click(
+                fn=run_zero_shot_inference,
+                inputs=[
+                    prompt_textbox,
+                    model_dropdown,
+                    device_dropdown,
+                    dtype_dropdown,
+                    filename,
+                ],
+                outputs=[result_textbox],
+            )
+
             def update_submit_btn(choice):
                 return gr.Button(interactive=choice is not None)
 
@@ -278,21 +402,59 @@ class ActiveLearner:
             )
 
             def navigate(current_idx, direction):
+                # Convert current_idx to int before arithmetic
+                current_idx = int(current_idx)
                 next_idx = current_idx + direction
+
                 if 0 <= next_idx < len(filepaths):
-                    return filepaths[next_idx], filepaths[next_idx], next_idx, next_idx
+                    return (
+                        filepaths[next_idx],
+                        filepaths[next_idx],
+                        df["pred_label"].iloc[next_idx]
+                        if "pred_label" in df.columns
+                        else "",
+                        f"{df['pred_conf'].iloc[next_idx]:.2%}"
+                        if "pred_conf" in df.columns
+                        else "",
+                        df["pred_label"].iloc[next_idx]
+                        if "pred_label" in df.columns
+                        else None,
+                        next_idx,
+                        next_idx,
+                    )
                 return (
                     filepaths[current_idx],
                     filepaths[current_idx],
+                    df["pred_label"].iloc[current_idx]
+                    if "pred_label" in df.columns
+                    else "",
+                    f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                    if "pred_conf" in df.columns
+                    else "",
+                    df["pred_label"].iloc[current_idx]
+                    if "pred_label" in df.columns
+                    else None,
                     current_idx,
                     current_idx,
                 )
 
             def save_and_next(current_idx, selected_category):
+                # Convert current_idx to int before arithmetic
+                current_idx = int(current_idx)
+
                 if selected_category is None:
                     return (
                         filepaths[current_idx],
                         filepaths[current_idx],
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else "",
+                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        if "pred_conf" in df.columns
+                        else "",
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else None,
                         current_idx,
                         current_idx,
                     )
@@ -307,10 +469,33 @@ class ActiveLearner:
                     return (
                         filepaths[current_idx],
                         filepaths[current_idx],
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else "",
+                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        if "pred_conf" in df.columns
+                        else "",
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else None,
                         current_idx,
                         current_idx,
                     )
-                return filepaths[next_idx], filepaths[next_idx], next_idx, next_idx
+                return (
+                    filepaths[next_idx],
+                    filepaths[next_idx],
+                    df["pred_label"].iloc[next_idx]
+                    if "pred_label" in df.columns
+                    else "",
+                    f"{df['pred_conf'].iloc[next_idx]:.2%}"
+                    if "pred_conf" in df.columns
+                    else "",
+                    df["pred_label"].iloc[next_idx]
+                    if "pred_label" in df.columns
+                    else None,
+                    next_idx,
+                    next_idx,
+                )
 
             def convert_csv_to_parquet():
                 try:
@@ -326,19 +511,43 @@ class ActiveLearner:
             back_btn.click(
                 fn=lambda idx: navigate(idx, -1),
                 inputs=[current_index],
-                outputs=[filename, image, current_index, progress],
+                outputs=[
+                    filename,
+                    image,
+                    pred_label,
+                    pred_conf,
+                    category,
+                    current_index,
+                    progress,
+                ],
             )
 
             next_btn.click(
                 fn=lambda idx: navigate(idx, 1),
                 inputs=[current_index],
-                outputs=[filename, image, current_index, progress],
+                outputs=[
+                    filename,
+                    image,
+                    pred_label,
+                    pred_conf,
+                    category,
+                    current_index,
+                    progress,
+                ],
             )
 
             submit_btn.click(
                 fn=save_and_next,
                 inputs=[current_index, category],
-                outputs=[filename, image, current_index, progress],
+                outputs=[
+                    filename,
+                    image,
+                    pred_label,
+                    pred_conf,
+                    category,
+                    current_index,
+                    progress,
+                ],
             )
 
             finish_btn.click(fn=convert_csv_to_parquet)
@@ -350,10 +559,6 @@ class ActiveLearner:
         Add samples to the training set.
         """
         new_train_set = df.copy()
-        # new_train_set.drop(columns=["pred_conf"], inplace=True)
-        # new_train_set.rename(columns={"pred_label": "label"}, inplace=True)
-
-        # len_old = len(self.train_set)
 
         logger.info(f"Adding {len(new_train_set)} samples to training set")
         self.train_set = pd.concat([self.train_set, new_train_set])
@@ -365,13 +570,3 @@ class ActiveLearner:
 
         self.train_set.to_parquet(f"{output_filename}.parquet")
         logger.info(f"Saved training set to {output_filename}.parquet")
-
-        # if len(self.train_set) == len_old:
-        #     logger.warning("No new samples added to training set")
-
-        # elif len_old + len(new_train_set) < len(self.train_set):
-        #     logger.warning("Some samples were duplicates and removed from training set")
-
-        # else:
-        #     logger.info("All new samples added to training set")
-        #     logger.info(f"Training set now has {len(self.train_set)} samples")
