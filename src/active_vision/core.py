@@ -1,17 +1,6 @@
 import pandas as pd
 from loguru import logger
-from fastai.callback.all import ShowGraphCallback
-from fastai.vision.all import (
-    ImageDataLoaders,
-    aug_transforms,
-    Resize,
-    vision_learner,
-    accuracy,
-    valley,
-    slide,
-    minimum,
-    steep,
-)
+from fastai.vision.all import *
 import torch
 import torch.nn.functional as F
 
@@ -61,19 +50,49 @@ class ActiveLearner:
         logger.info("Creating learner")
         self.learn = vision_learner(self.dls, self.model, metrics=accuracy).to_fp16()
         self.class_names = self.dls.vocab
+        self.num_classes = self.dls.c
         logger.info("Done. Ready to train.")
 
-    def show_batch(self):
-        self.dls.show_batch()
+    def show_batch(
+        self,
+        num_samples: int = 9,
+        unique: bool = False,
+        num_rows: int = None,
+        num_cols: int = None,
+    ):
+        """
+        Show a batch of images from the dataset.
+
+        Args:
+            num_samples: Number of samples to show.
+            unique: Whether to show unique samples.
+            num_rows: Number of rows in the grid.
+            num_cols: Number of columns in the grid.
+        """
+        self.dls.show_batch(
+            max_n=num_samples, unique=unique, nrows=num_rows, ncols=num_cols
+        )
 
     def lr_find(self):
         logger.info("Finding optimal learning rate")
         self.lrs = self.learn.lr_find(suggest_funcs=(minimum, steep, valley, slide))
         logger.info(f"Optimal learning rate: {self.lrs.valley}")
 
-    def train(self, epochs: int, lr: float):
-        logger.info(f"Training for {epochs} epochs with learning rate: {lr}")
-        self.learn.fine_tune(epochs, lr, cbs=[ShowGraphCallback()])
+    def train(self, epochs: int, lr: float, head_tuning_epochs: int = 1):
+        """
+        Train the model.
+
+        Args:
+            epochs: Number of epochs to train for.
+            lr: Learning rate.
+            head_tuning_epochs: Number of epochs to train the head.
+        """
+        logger.info(f"Training head for {head_tuning_epochs} epochs")
+        logger.info(f"Training model end-to-end for {epochs} epochs")
+        logger.info(f"Learning rate: {lr} with one-cycle learning rate scheduler")
+        self.learn.fine_tune(
+            epochs, lr, freeze_epochs=head_tuning_epochs, cbs=[ShowGraphCallback()]
+        )
 
     def predict(self, filepaths: list[str], batch_size: int = 16):
         """
@@ -130,12 +149,18 @@ class ActiveLearner:
         - entropy: Get top `num_samples` samples with the highest entropy.
         """
 
-        # Remove samples that is already in the training set
-        df = df[~df["filepath"].isin(self.train_set["filepath"])]
+        # Remove samples that is already in the training set 
+        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
-            uncertain_df = df.sort_values(by="pred_conf", ascending=True).head(
+
+            df.loc[:, "uncertainty_score"] = 1 - (df["pred_conf"]) / (
+                self.num_classes - (self.num_classes - 1)
+            )
+
+            # Sort by descending uncertainty score
+            uncertain_df = df.sort_values(by="uncertainty_score", ascending=False).head(
                 num_samples
             )
             return uncertain_df
