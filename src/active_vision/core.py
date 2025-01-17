@@ -297,7 +297,11 @@ class ActiveLearner:
                 #     outputs=[pred_label, pred_conf],
                 # )
 
-            category = gr.Radio(choices=self.class_names, label="Select Category")
+            category = gr.Radio(
+                choices=self.class_names, 
+                label="Select Category", 
+                value=df["pred_label"].iloc[0] if "pred_label" in df.columns else None
+            )
 
             with gr.Row():
                 back_btn = gr.Button("← Previous (A)", elem_id="back_btn")
@@ -337,6 +341,7 @@ class ActiveLearner:
                         filepaths[next_idx],
                         df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else "",
                         f"{df['pred_conf'].iloc[next_idx]:.2%}" if "pred_conf" in df.columns else "",
+                        df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else None,
                         next_idx,
                         next_idx,
                     )
@@ -345,6 +350,7 @@ class ActiveLearner:
                     filepaths[current_idx],
                     df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
                     f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
+                    df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
                     current_idx,
                     current_idx,
                 )
@@ -359,6 +365,7 @@ class ActiveLearner:
                         filepaths[current_idx],
                         df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
                         f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
+                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
                         current_idx,
                         current_idx,
                     )
@@ -375,6 +382,7 @@ class ActiveLearner:
                         filepaths[current_idx],
                         df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
                         f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
+                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
                         current_idx,
                         current_idx,
                     )
@@ -383,6 +391,7 @@ class ActiveLearner:
                     filepaths[next_idx],
                     df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else "",
                     f"{df['pred_conf'].iloc[next_idx]:.2%}" if "pred_conf" in df.columns else "",
+                    df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else None,
                     next_idx,
                     next_idx,
                 )
@@ -401,19 +410,19 @@ class ActiveLearner:
             back_btn.click(
                 fn=lambda idx: navigate(idx, -1),
                 inputs=[current_index],
-                outputs=[filename, image, pred_label, pred_conf, current_index, progress],
+                outputs=[filename, image, pred_label, pred_conf, category, current_index, progress],
             )
 
             next_btn.click(
                 fn=lambda idx: navigate(idx, 1),
                 inputs=[current_index],
-                outputs=[filename, image, pred_label, pred_conf, current_index, progress],
+                outputs=[filename, image, pred_label, pred_conf, category, current_index, progress],
             )
 
             submit_btn.click(
                 fn=save_and_next,
                 inputs=[current_index, category],
-                outputs=[filename, image, pred_label, pred_conf, current_index, progress],
+                outputs=[filename, image, pred_label, pred_conf, category, current_index, progress],
             )
 
             finish_btn.click(fn=convert_csv_to_parquet)
