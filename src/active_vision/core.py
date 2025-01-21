@@ -339,7 +339,6 @@ class ActiveLearner:
                             "Submit (↑/Enter)",
                             variant="primary",
                             elem_id="submit_btn",
-                            interactive=False,
                         )
                         next_btn = gr.Button("Next →", elem_id="next_btn")
 
