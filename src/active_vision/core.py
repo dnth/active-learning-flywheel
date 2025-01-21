@@ -275,107 +275,109 @@ class ActiveLearner:
         filepaths = df["filepath"].tolist()
 
         with gr.Blocks(head=shortcut_js) as demo:
-            current_index = gr.State(value=0)
+            with gr.Tabs():
+                with gr.Tab("Labeling"):
+                    current_index = gr.State(value=0)
 
-            image = gr.Image(
-                type="filepath", label="Image", value=filepaths[0], height=500
-            )
-
-            with gr.Row():
-                filename = gr.Textbox(
-                    label="Filename", value=filepaths[0], interactive=False
-                )
-
-                pred_label = gr.Textbox(
-                    label="Predicted Label",
-                    value=df["pred_label"].iloc[0]
-                    if "pred_label" in df.columns
-                    else "",
-                    interactive=False,
-                )
-                pred_conf = gr.Textbox(
-                    label="Confidence",
-                    value=f"{df['pred_conf'].iloc[0]:.2%}"
-                    if "pred_conf" in df.columns
-                    else "",
-                    interactive=False,
-                )
-
-            category = gr.Radio(
-                choices=self.class_names,
-                label="Select Category",
-                value=df["pred_label"].iloc[0] if "pred_label" in df.columns else None,
-            )
-
-            with gr.Row():
-                back_btn = gr.Button("← Previous", elem_id="back_btn")
-                submit_btn = gr.Button(
-                    "Submit (↑/Enter)",
-                    variant="primary",
-                    elem_id="submit_btn",
-                    interactive=False,
-                )
-                next_btn = gr.Button("Next →", elem_id="next_btn")
-
-            progress = gr.Slider(
-                minimum=0,
-                maximum=len(filepaths) - 1,
-                value=0,
-                label="Progress",
-                interactive=False,
-            )
-
-            finish_btn = gr.Button("Finish Labeling", variant="primary")
-
-            with gr.Accordion("Zero-Shot Inference", open=False) as zero_shot_accordion:
-                gr.Markdown("""
-                Uses a VLM to predict the label of the image.
-                """)
-
-                import xinfer
-                from xinfer.model_registry import model_registry
-                from xinfer.types import ModelInputOutput
-
-                # Get models and filter for image-to-text models
-                all_models = model_registry.list_models()
-                model_list = [
-                    model.id
-                    for model in all_models
-                    if model.input_output == ModelInputOutput.IMAGE_TEXT_TO_TEXT
-                ]
-
-                with gr.Row():
-                    with gr.Row():
-                        model_dropdown = gr.Dropdown(
-                            choices=model_list,
-                            label="Select a model",
-                            value="vikhyatk/moondream2",
-                        )
-                        device_dropdown = gr.Dropdown(
-                            choices=["cuda", "cpu"],
-                            label="Device",
-                            value="cuda" if torch.cuda.is_available() else "cpu",
-                        )
-                        dtype_dropdown = gr.Dropdown(
-                            choices=["float32", "float16", "bfloat16"],
-                            label="Data Type",
-                            value="float16" if torch.cuda.is_available() else "float32",
-                        )
-
-                with gr.Column():
-                    prompt_textbox = gr.Textbox(
-                        label="Prompt",
-                        lines=5,
-                        value=f"Classify the image into one of the following categories: {self.class_names}. Answer with the category name only.",
-                        interactive=True,
+                    image = gr.Image(
+                        type="filepath", label="Image", value=filepaths[0], height=500
                     )
-                    inference_btn = gr.Button("Run Inference", variant="primary")
 
-                    result_textbox = gr.Textbox(
-                        label="Result",
-                        lines=3,
+                    with gr.Row():
+                        filename = gr.Textbox(
+                            label="Filename", value=filepaths[0], interactive=False
+                        )
+
+                        pred_label = gr.Textbox(
+                            label="Predicted Label",
+                            value=df["pred_label"].iloc[0]
+                            if "pred_label" in df.columns
+                            else "",
+                            interactive=False,
+                        )
+                        pred_conf = gr.Textbox(
+                            label="Confidence",
+                            value=f"{df['pred_conf'].iloc[0]:.2%}"
+                            if "pred_conf" in df.columns
+                            else "",
+                            interactive=False,
+                        )
+
+                    category = gr.Radio(
+                        choices=self.class_names,
+                        label="Select Category",
+                        value=df["pred_label"].iloc[0] if "pred_label" in df.columns else None,
+                    )
+
+                    with gr.Row():
+                        back_btn = gr.Button("← Previous", elem_id="back_btn")
+                        submit_btn = gr.Button(
+                            "Submit (↑/Enter)",
+                            variant="primary",
+                            elem_id="submit_btn",
+                            interactive=False,
+                        )
+                        next_btn = gr.Button("Next →", elem_id="next_btn")
+
+                    progress = gr.Slider(
+                        minimum=0,
+                        maximum=len(filepaths) - 1,
+                        value=0,
+                        label="Progress",
                         interactive=False,
                     )
+
+                    finish_btn = gr.Button("Finish Labeling", variant="primary")
+
+                with gr.Tab("Zero-Shot Inference"):
+                    gr.Markdown("""
+                    Uses a VLM to predict the label of the image.
+                    """)
+
+                    import xinfer
+                    from xinfer.model_registry import model_registry
+                    from xinfer.types import ModelInputOutput
+
+                    # Get models and filter for image-to-text models
+                    all_models = model_registry.list_models()
+                    model_list = [
+                        model.id
+                        for model in all_models
+                        if model.input_output == ModelInputOutput.IMAGE_TEXT_TO_TEXT
+                    ]
+
+                    with gr.Row():
+                        with gr.Row():
+                            model_dropdown = gr.Dropdown(
+                                choices=model_list,
+                                label="Select a model",
+                                value="vikhyatk/moondream2",
+                            )
+                            device_dropdown = gr.Dropdown(
+                                choices=["cuda", "cpu"],
+                                label="Device",
+                                value="cuda" if torch.cuda.is_available() else "cpu",
+                            )
+                            dtype_dropdown = gr.Dropdown(
+                                choices=["float32", "float16", "bfloat16"],
+                                label="Data Type",
+                                value="float16" if torch.cuda.is_available() else "float32",
+                            )
+
+                    with gr.Column():
+                        prompt_textbox = gr.Textbox(
+                            label="Prompt",
+                            lines=5,
+                            value=f"Classify the image into one of the following categories: {self.class_names}. Answer with the category name only.",
+                            interactive=True,
+                        )
+                        inference_btn = gr.Button("Run Inference", variant="primary")
+
+                        result_textbox = gr.Textbox(
+                            label="Result",
+                            lines=3,
+                            interactive=False,
+                        )
 
             def run_zero_shot_inference(prompt, model, device, dtype, current_filename):
                 model = xinfer.create_model(model, device=device, dtype=dtype)
