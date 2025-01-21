@@ -142,7 +142,7 @@ class ActiveLearner:
             {
                 "filepath": filepaths,
                 "pred_label": [self.learn.dls.vocab[i] for i in cls_preds.numpy()],
-                "pred_conf": torch.max(F.softmax(preds, dim=1), dim=1)[0].numpy(),
+                "pred_conf": torch.max(preds, dim=1)[0].numpy(),
             }
         )
         return self.pred_df
@@ -306,7 +306,9 @@ class ActiveLearner:
                     category = gr.Radio(
                         choices=self.class_names,
                         label="Select Category",
-                        value=df["pred_label"].iloc[0] if "pred_label" in df.columns else None,
+                        value=df["pred_label"].iloc[0]
+                        if "pred_label" in df.columns
+                        else None,
                     )
 
                     with gr.Row():
@@ -361,7 +363,9 @@ class ActiveLearner:
                             dtype_dropdown = gr.Dropdown(
                                 choices=["float32", "float16", "bfloat16"],
                                 label="Data Type",
-                                value="float16" if torch.cuda.is_available() else "float32",
+                                value="float16"
+                                if torch.cuda.is_available()
+                                else "float32",
                             )
 
                     with gr.Column():
