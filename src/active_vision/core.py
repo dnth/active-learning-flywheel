@@ -188,7 +188,7 @@ class ActiveLearner:
         # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
-        df = df.drop(columns=["pred_raw"]) # probably not needed here
+        # df = df.drop(columns=["pred_raw"]) # probably not needed here
 
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
@@ -281,9 +281,23 @@ class ActiveLearner:
                 with gr.Tab("Labeling"):
                     current_index = gr.State(value=0)
 
-                    image = gr.Image(
-                        type="filepath", label="Image", value=filepaths[0], height=500
-                    )
+                    with gr.Row():
+                        image = gr.Image(
+                            type="filepath", label="Image", value=filepaths[0], height=500
+                        )
+
+                        # Add bar plot with top 5 predictions
+                        pred_plot = gr.BarPlot(
+                            x="probability",
+                            y="class",
+                            title="Top 5 Predictions",
+                            x_lim=[0, 1],
+                            value=None if "pred_raw" not in df.columns else pd.DataFrame({
+                                "class": self.class_names,
+                                "probability": df["pred_raw"].iloc[0]
+                            }).nlargest(5, "probability"),
+                            height=500,
+                        )
 
                     with gr.Row():
                         filename = gr.Textbox(
@@ -415,35 +429,33 @@ class ActiveLearner:
                 next_idx = current_idx + direction
 
                 if 0 <= next_idx < len(filepaths):
+                    plot_data = None if "pred_raw" not in df.columns else pd.DataFrame({
+                        "class": self.class_names,
+                        "probability": df["pred_raw"].iloc[next_idx]
+                    }).nlargest(5, "probability")
                     return (
                         filepaths[next_idx],
                         filepaths[next_idx],
-                        df["pred_label"].iloc[next_idx]
-                        if "pred_label" in df.columns
-                        else "",
-                        f"{df['pred_conf'].iloc[next_idx]:.2%}"
-                        if "pred_conf" in df.columns
-                        else "",
-                        df["pred_label"].iloc[next_idx]
-                        if "pred_label" in df.columns
-                        else None,
+                        df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else "",
+                        f"{df['pred_conf'].iloc[next_idx]:.2%}" if "pred_conf" in df.columns else "",
+                        df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else None,
                         next_idx,
                         next_idx,
+                        plot_data,
                     )
+                plot_data = None if "pred_raw" not in df.columns else pd.DataFrame({
+                    "class": self.class_names,
+                    "probability": df["pred_raw"].iloc[current_idx]
+                }).nlargest(5, "probability")
                 return (
                     filepaths[current_idx],
                     filepaths[current_idx],
-                    df["pred_label"].iloc[current_idx]
-                    if "pred_label" in df.columns
-                    else "",
-                    f"{df['pred_conf'].iloc[current_idx]:.2%}"
-                    if "pred_conf" in df.columns
-                    else "",
-                    df["pred_label"].iloc[current_idx]
-                    if "pred_label" in df.columns
-                    else None,
+                    df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
+                    f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
+                    df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
                     current_idx,
                     current_idx,
+                    plot_data,
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -527,6 +539,7 @@ class ActiveLearner:
                     category,
                     current_index,
                     progress,
+                    pred_plot,
                 ],
             )
 
@@ -541,6 +554,7 @@ class ActiveLearner:
                     category,
                     current_index,
                     progress,
+                    pred_plot,
                 ],
             )
 
