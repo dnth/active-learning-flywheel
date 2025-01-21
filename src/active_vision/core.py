@@ -2,7 +2,6 @@ import pandas as pd
 from loguru import logger
 from fastai.vision.all import *
 import torch
-import torch.nn.functional as F
 
 import warnings
 from typing import Callable
@@ -143,6 +142,7 @@ class ActiveLearner:
                 "filepath": filepaths,
                 "pred_label": [self.learn.dls.vocab[i] for i in cls_preds.numpy()],
                 "pred_conf": torch.max(preds, dim=1)[0].numpy(),
+                "pred_raw": preds.numpy().tolist(),
             }
         )
         return self.pred_df
@@ -187,6 +187,8 @@ class ActiveLearner:
 
         # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+
+        df = df.drop(columns=["pred_raw"]) # probably not needed here
 
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
