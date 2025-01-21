@@ -493,20 +493,21 @@ class ActiveLearner:
                 current_idx = int(current_idx)
 
                 if selected_category is None:
+                    plot_data = None if "pred_raw" not in df.columns else pd.DataFrame(
+                        {
+                            "class": self.class_names,
+                            "probability": df["pred_raw"].iloc[current_idx],
+                        }
+                    ).nlargest(5, "probability")
                     return (
                         filepaths[current_idx],
                         filepaths[current_idx],
-                        df["pred_label"].iloc[current_idx]
-                        if "pred_label" in df.columns
-                        else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
-                        if "pred_conf" in df.columns
-                        else "",
-                        df["pred_label"].iloc[current_idx]
-                        if "pred_label" in df.columns
-                        else None,
+                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
+                        f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
+                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
                         current_idx,
                         current_idx,
+                        plot_data,
                     )
 
                 # Save the current annotation
@@ -516,35 +517,38 @@ class ActiveLearner:
                 # Move to next image if not at the end
                 next_idx = current_idx + 1
                 if next_idx >= len(filepaths):
+                    plot_data = None if "pred_raw" not in df.columns else pd.DataFrame(
+                        {
+                            "class": self.class_names,
+                            "probability": df["pred_raw"].iloc[current_idx],
+                        }
+                    ).nlargest(5, "probability")
                     return (
                         filepaths[current_idx],
                         filepaths[current_idx],
-                        df["pred_label"].iloc[current_idx]
-                        if "pred_label" in df.columns
-                        else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
-                        if "pred_conf" in df.columns
-                        else "",
-                        df["pred_label"].iloc[current_idx]
-                        if "pred_label" in df.columns
-                        else None,
+                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
+                        f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
+                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
                         current_idx,
                         current_idx,
+                        plot_data,
                     )
+
+                plot_data = None if "pred_raw" not in df.columns else pd.DataFrame(
+                    {
+                        "class": self.class_names,
+                        "probability": df["pred_raw"].iloc[next_idx],
+                    }
+                ).nlargest(5, "probability")
                 return (
                     filepaths[next_idx],
                     filepaths[next_idx],
-                    df["pred_label"].iloc[next_idx]
-                    if "pred_label" in df.columns
-                    else "",
-                    f"{df['pred_conf'].iloc[next_idx]:.2%}"
-                    if "pred_conf" in df.columns
-                    else "",
-                    df["pred_label"].iloc[next_idx]
-                    if "pred_label" in df.columns
-                    else None,
+                    df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else "",
+                    f"{df['pred_conf'].iloc[next_idx]:.2%}" if "pred_conf" in df.columns else "",
+                    df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else None,
                     next_idx,
                     next_idx,
+                    plot_data,
                 )
 
             def convert_csv_to_parquet():
@@ -599,6 +603,7 @@ class ActiveLearner:
                     category,
                     current_index,
                     progress,
+                    pred_plot,
                 ],
             )
 
