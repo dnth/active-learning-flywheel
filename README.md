@@ -107,6 +107,10 @@ al.label(uncertain_df, output_filename="uncertain")
 
 ![Gradio UI](https://raw.githubusercontent.com/dnth/active-vision/main/assets/labeling_ui.png)
 
+In the UI, you can optionally run zero-shot inference on the image. This will use a VLM to predict the label of the image. There are a dozen VLM models as supported in the [x.infer project](https://github.com/dnth/x.infer).
+
+![Zero-Shot Inference](https://raw.githubusercontent.com/dnth/active-vision/main/assets/zero_shot_ui.png)
+
 Once complete, the labeled samples will be save into a new df.
 We can now add the newly labeled data to the training set.
 
