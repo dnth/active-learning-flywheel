@@ -2,7 +2,6 @@ import pandas as pd
 from loguru import logger
 from fastai.vision.all import *
 import torch
-import torch.nn.functional as F
 
 import warnings
 from typing import Callable
@@ -142,7 +141,8 @@ class ActiveLearner:
             {
                 "filepath": filepaths,
                 "pred_label": [self.learn.dls.vocab[i] for i in cls_preds.numpy()],
-                "pred_conf": torch.max(F.softmax(preds, dim=1), dim=1)[0].numpy(),
+                "pred_conf": torch.max(preds, dim=1)[0].numpy(),
+                "pred_raw": preds.numpy().tolist(),
             }
         )
         return self.pred_df
@@ -187,6 +187,8 @@ class ActiveLearner:
 
         # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+
+        # df = df.drop(columns=["pred_raw"]) # probably not needed here
 
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
@@ -279,34 +281,56 @@ class ActiveLearner:
                 with gr.Tab("Labeling"):
                     current_index = gr.State(value=0)
 
-                    image = gr.Image(
-                        type="filepath", label="Image", value=filepaths[0], height=500
-                    )
-
-                    with gr.Row():
-                        filename = gr.Textbox(
-                            label="Filename", value=filepaths[0], interactive=False
+                    with gr.Row(min_height=500):
+                        image = gr.Image(
+                            type="filepath",
+                            label="Image",
+                            value=filepaths[0],
+                            height=500
                         )
 
-                        pred_label = gr.Textbox(
-                            label="Predicted Label",
-                            value=df["pred_label"].iloc[0]
-                            if "pred_label" in df.columns
-                            else "",
-                            interactive=False,
-                        )
-                        pred_conf = gr.Textbox(
-                            label="Confidence",
-                            value=f"{df['pred_conf'].iloc[0]:.2%}"
-                            if "pred_conf" in df.columns
-                            else "",
-                            interactive=False,
-                        )
+                        # Add bar plot with top 5 predictions
+                        with gr.Column():
+                            pred_plot = gr.BarPlot(
+                                x="probability",
+                                y="class",
+                                title="Top 5 Predictions",
+                                x_lim=[0, 1],
+                                value=None
+                                if "pred_raw" not in df.columns
+                                else pd.DataFrame(
+                                    {
+                                        "class": self.class_names,
+                                        "probability": df["pred_raw"].iloc[0],
+                                    }
+                                ).nlargest(5, "probability"),
+                            )
+
+                            filename = gr.Textbox(
+                                label="Filename", value=filepaths[0], interactive=False
+                            )
+
+                            pred_label = gr.Textbox(
+                                label="Predicted Label",
+                                value=df["pred_label"].iloc[0]
+                                if "pred_label" in df.columns
+                                else "",
+                                interactive=False,
+                            )
+                            pred_conf = gr.Textbox(
+                                label="Confidence",
+                                value=f"{df['pred_conf'].iloc[0]:.2%}"
+                                if "pred_conf" in df.columns
+                                else "",
+                                interactive=False,
+                            )
 
                     category = gr.Radio(
                         choices=self.class_names,
                         label="Select Category",
-                        value=df["pred_label"].iloc[0] if "pred_label" in df.columns else None,
+                        value=df["pred_label"].iloc[0]
+                        if "pred_label" in df.columns
+                        else None,
                     )
 
                     with gr.Row():
@@ -361,7 +385,9 @@ class ActiveLearner:
                             dtype_dropdown = gr.Dropdown(
                                 choices=["float32", "float16", "bfloat16"],
                                 label="Data Type",
-                                value="float16" if torch.cuda.is_available() else "float32",
+                                value="float16"
+                                if torch.cuda.is_available()
+                                else "float32",
                             )
 
                     with gr.Column():
@@ -409,6 +435,16 @@ class ActiveLearner:
                 next_idx = current_idx + direction
 
                 if 0 <= next_idx < len(filepaths):
+                    plot_data = (
+                        None
+                        if "pred_raw" not in df.columns
+                        else pd.DataFrame(
+                            {
+                                "class": self.class_names,
+                                "probability": df["pred_raw"].iloc[next_idx],
+                            }
+                        ).nlargest(5, "probability")
+                    )
                     return (
                         filepaths[next_idx],
                         filepaths[next_idx],
@@ -423,7 +459,18 @@ class ActiveLearner:
                         else None,
                         next_idx,
                         next_idx,
+                        plot_data,
                     )
+                plot_data = (
+                    None
+                    if "pred_raw" not in df.columns
+                    else pd.DataFrame(
+                        {
+                            "class": self.class_names,
+                            "probability": df["pred_raw"].iloc[current_idx],
+                        }
+                    ).nlargest(5, "probability")
+                )
                 return (
                     filepaths[current_idx],
                     filepaths[current_idx],
@@ -438,6 +485,7 @@ class ActiveLearner:
                     else None,
                     current_idx,
                     current_idx,
+                    plot_data,
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -521,6 +569,7 @@ class ActiveLearner:
                     category,
                     current_index,
                     progress,
+                    pred_plot,
                 ],
             )
 
@@ -535,6 +584,7 @@ class ActiveLearner:
                     category,
                     current_index,
                     progress,
+                    pred_plot,
                 ],
             )
 
