@@ -101,7 +101,7 @@ pred_df = al.predict(filepaths)
 # Sample low confidence predictions from unlabeled set
 uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
 
-# Launch a Gradio UI to label the low confidence samples
+# Launch a Gradio UI to label the low confidence samples, save the labeled samples to a file
 al.label(uncertain_df, output_filename="uncertain")
 ```
 
