@@ -365,8 +365,8 @@ class ActiveLearner:
                 with gr.Column():
                     prompt_textbox = gr.Textbox(
                         label="Prompt",
-                        lines=3,
-                        value=f"Classify the image into one of the following categories: {self.class_names}",
+                        lines=5,
+                        value=f"Classify the image into one of the following categories: {self.class_names}. Answer with the category name only.",
                         interactive=True,
                     )
                     inference_btn = gr.Button("Run Inference", variant="primary")
