@@ -52,17 +52,18 @@ cd active-vision
 pip install -e .
 ```
 
-I recommend using [uv](https://docs.astral.sh/uv/) to set up a virtual environment and install the package. You can also use other virtual env of your choice.
-
-If you're using uv:
-
-```bash
-uv venv
-uv sync
-```
-Once the virtual environment is created, you can install the package using pip.
 
 > [!TIP]
+> I recommend using [uv](https://docs.astral.sh/uv/) to set up a virtual environment and install the package. You can also use other virtual env of your choice.
+> 
+> If you're using uv:
+> 
+> ```bash
+> uv venv
+> uv sync
+> ```
+> Once the virtual environment is created, you can install the package using pip.
+>
 > If you're using uv add a `uv` before the pip install command to install into your virtual environment. Eg:
 > ```bash
 > uv pip install active-vision
