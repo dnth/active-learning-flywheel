@@ -204,6 +204,8 @@ I decided to stop the active learning loop at 1188 labeled images because the pe
 |----------------:	|--------------------:	|-------------:	|----------------------	|:---------------:	|--------------------------------------------------------------------------------------------	|
 | 16100           	| 98.55%              	| 6            	| vit-base-patch16-224 	| ❌                | [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/03_train_all.ipynb)  |
 | 1188            	| 94.59%              	| 6            	| vit-base-patch16-224 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/02_train.ipynb)     	|
+| 1188            	| 96.57%              	| 13           	| vit-base-patch16-224 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/02_train.ipynb)     	|
+
 
 ## ➿ Workflow
 This section describes a more detailed workflow for active learning. There are two workflows for active learning that we can use depending on the availability of labeled data.
