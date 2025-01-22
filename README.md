@@ -273,55 +273,17 @@ graph TD
 
 
 
-<!-- ## Methodology
-To test out the workflows we will use the [imagenette dataset](https://huggingface.co/datasets/frgfm/imagenette). But this will be applicable to any dataset.
+## 🧱 Sampling Approaches
 
-Imagenette is a subset of the ImageNet dataset with 10 classes. We will use this dataset to test out the workflows. Additionally, Imagenette has an existing leaderboard which we can use to evaluate the performance of the models.
+Recommendation 1:
+- 10% randomly selected from unlabeled items
+- 80% selected from the lowest confidence items
+- 10% selected as outliers
 
-### Step 1: Download the dataset
-Download the imagenette dataset. The imagenette dataset has a train and validation split. Since the leaderboard is based on the validation set, we will evalutate the performance of our model on the validation set to make it easier to compare to the leaderboard.
+Recommendation 2:
 
-We will treat the imagenette train set as a unlabeled set and iteratively sample from it while monitoring the performance on the validation set. Ideally we will be able to get to a point where the performance on the validation set is close to the leaderboard with minimal number of labeled images.
+- Sample 100 predicted images at 10–20% confidence.
+- Sample 100 predicted images at 20–30% confidence.
+- Sample 100 predicted images at 30–40% confidence, and so on.
 
-I've processed the imagenette dataset and uploaded it to the hub. You can download it from [here](https://huggingface.co/datasets/dnth/active-learning-imagenette).
-
-To load the dataset, you can use the following code:
-```python
-from datasets import load_dataset
-
-unlabeled_dataset = load_dataset("dnth/active-learning-imagenette", "unlabeled")
-eval_dataset = load_dataset("dnth/active-learning-imagenette", "evaluation")
-```
-
-### Step 2: Initial Sampling
-Label an initial dataset of 10 images from each class. This will give us a small proxy dataset to train our model on. The sampling will be done randomly. There are more intelligent sampling strategies but we will start with random sampling.
-
-### Step 3: Training the proxy model
-Train a proxy model on the initial dataset. The proxy model will be a small model that is easy to train and deploy. We will use the fastai framework to train the model. We will use the resnet18 architecture as a starting point. Once training is complete, compute the accuracy of the proxy model on the validation set and compare it to the leaderboard.
-
-> [!TIP]
-> With the initial model we got 91.24% accuracy on the validation set. See the [notebook](./nbs/01_initial_sampling.ipynb) for more details.
-> | Train Epochs | Number of Images | Validation Accuracy |      Source      |
-> |--------------|-----------------|----------------------|------------------|
-> | 10           | 100             | 91.24%               | Initial sampling [notebook](./nbs/01_initial_sampling.ipynb) |
-> | 80           | 9469            | 94.90%               | fastai |
-> | 200          | 9469            | 95.11%               | fastai |
-
-
-
-### Step 4: Inference on the unlabeled dataset
-Run inference on the unlabeled dataset (the remaining imagenette train set) and evaluate the performance of the proxy model. 
-
-### Step 5: Active learning
-Use active learning to select the most informative images to label from the unlabeled set. Pick the top 10 images from the unlabeled set that the proxy model is least confident about and label them.
-
-### Step 6: Repeat
-Repeat step 3 - 5 until the performance on the validation set is close to the leaderboard. Note the number of labeled images vs the performance on the validation set. Ideally we want to get to a point where the performance on the validation set is close to the leaderboard with minimal number of labeled images.
-
-
-After the first iteration we got 94.57% accuracy on the validation set. See the [notebook](./nbs/03_retrain_model.ipynb) for more details.
-
-> [!TIP]
-> | Train Epochs | Number of Images | Validation Accuracy |      Source      |
-> |--------------|-----------------|----------------------|------------------|
-> | 10           | 200             | 94.57%               | First relabeling [notebook](./nbs/03_retrain_model.ipynb) | -->
+Ultimately, the right ratios can depend on the specific task and dataset.
