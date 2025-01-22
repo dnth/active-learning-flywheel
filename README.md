@@ -286,4 +286,9 @@ Recommendation 2:
 - Sample 100 predicted images at 20–30% confidence.
 - Sample 100 predicted images at 30–40% confidence, and so on.
 
+Recommendation 3:
+
+Uncertainty and diversity sampling are most effective when combined. For instance, you could first sample the most uncertain items using an uncertainty sampling method, then apply a diversity sampling method such as clustering to select a diverse set from the uncertain items.
+
 Ultimately, the right ratios can depend on the specific task and dataset.
+
