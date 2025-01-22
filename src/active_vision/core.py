@@ -188,8 +188,6 @@ class ActiveLearner:
         # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
-        # df = df.drop(columns=["pred_raw"]) # probably not needed here
-
         if strategy == "least-confidence":
             logger.info(f"Getting top {num_samples} low confidence samples")
 

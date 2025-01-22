@@ -276,9 +276,9 @@ graph TD
 ## 🧱 Sampling Approaches
 
 Recommendation 1:
-- 10% randomly selected from unlabeled items
-- 80% selected from the lowest confidence items
-- 10% selected as outliers
+- 10% randomly selected from unlabeled items.
+- 80% selected from the lowest confidence items.
+- 10% selected as outliers.
 
 Recommendation 2:
 
