@@ -156,12 +156,12 @@ The active learning loop is a iterative process and can keep going until you hit
 For this dataset,I decided to stop the active learning loop at 275 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. 
 
 
-| #Labeled Images | Evaluation Accuracy | Train Epochs | Model                | Active Learning | Source |
-|-----------------|---------------------|--------------|----------------------|----------------|--------|
-| 9469            | 94.90%              | 80           | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
-| 9469            | 95.11%              | 200          | xse_resnext50        | ❌             | [Link](https://github.com/fastai/imagenette) |
-| 275             | 99.33%               | 6            | convnext_small_in22k | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) |
-| 275             | 93.40%               | 4            | resnet18             | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb) |
+| #Labeled Images 	| Evaluation Accuracy 	| Train Epochs 	| Model                	| Active Learning 	| Source                                                                              	|
+|-----------------	|---------------------	|--------------	|----------------------	|-----------------	|-------------------------------------------------------------------------------------	|
+| 9469            	| 94.90%              	| 80           	| xse_resnext50        	| ❌                | [Link](https://github.com/fastai/imagenette)                                        	 |
+| 9469            	| 95.11%              	| 200          	| xse_resnext50        	| ❌                | [Link](https://github.com/fastai/imagenette)                                        	 |
+| 275             	| 99.33%              	| 6            	| convnext_small_in22k 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/05_retrain_larger.ipynb) 	|
+| 275             	| 93.40%              	| 4            	| resnet18             	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/04_relabel_loop.ipynb)   	|
 
 ### Dog Food
 - num classes: 2
@@ -171,11 +171,11 @@ To start the active learning loop, I labeled 20 images (10 images from each clas
 
 I decided to stop the active learning loop at 160 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. You can decide your own stopping point based on your use case.
 
-| #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
-|-----------------|---------------------|--------------|-------|----------------|--------|
-| 2100            | 99.70%              | ?            | vit-base-patch16-224   | ❌             | [Link](https://huggingface.co/abhishek/autotrain-dog-vs-food) |
-| 160             | 100.00%             | 6            | convnext_small_in22k   | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/02_train.ipynb) |
-| 160             | 97.60%              | 4            | resnet18              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/01_label.ipynb) |
+| #Labeled Images 	| Evaluation Accuracy 	| Train Epochs 	| Model                	| Active Learning 	| Source                                                                                      	|
+|-----------------	|---------------------	|--------------	|----------------------	|-----------------	|---------------------------------------------------------------------------------------------	|
+| 2100            	| 99.70%              	| ?            	| vit-base-patch16-224 	| ❌               	| [Link](https://huggingface.co/abhishek/autotrain-dog-vs-food)                               	|
+| 160             	| 100.00%             	| 6            	| convnext_small_in22k 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/02_train.ipynb) 	|
+| 160             	| 97.60%              	| 4            	| resnet18             	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/dog_food_dataset/01_label.ipynb) 	|
 
 ### Oxford-IIIT Pet
 - num classes: 37
@@ -185,13 +185,20 @@ To start the active learning loop, I labeled 370 images (10 images from each cla
 
 I decided to stop the active learning loop at 612 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. You can decide your own stopping point based on your use case.
 
-| #Labeled Images | Evaluation Accuracy | Train Epochs | Model | Active Learning | Source |
-|-----------------|---------------------|--------------|-------|----------------|--------|
-| 3680             | 95.40%              | 5           | vit-base-patch16-224   | ❌              | [Link](https://huggingface.co/walterg777/vit-base-oxford-iiit-pets) |
-| 612             | 90.26%              | 11            | convnext_small_in22k              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/02_train.ipynb) |
-| 612             | 91.38%              | 11            | vit-base-patch16-224              | ✓              | [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/03_train_vit.ipynb) |
+| #Labeled Images 	| Evaluation Accuracy 	| Train Epochs 	| Model                	| Active Learning 	| Source                                                                                          	|
+|-----------------	|---------------------	|--------------	|----------------------	|-----------------	|-------------------------------------------------------------------------------------------------	|
+| 3680            	| 95.40%              	| 5            	| vit-base-patch16-224 	| ❌                | [Link](https://huggingface.co/walterg777/vit-base-oxford-iiit-pets)                             	 |
+| 612             	| 90.26%              	| 11           	| convnext_small_in22k 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/02_train.ipynb)     	|
+| 612             	| 91.38%              	| 11           	| vit-base-patch16-224 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/oxford_iiit_pets/03_train_vit.ipynb) 	|
 
+### Eurosat RGB
+- num classes: 10
+- num images: 16100
 
+| #Labeled Images 	| Evaluation Accuracy 	| Train Epochs 	| Model                	| Active Learning 	| Source                                                                                     	|
+|-----------------	|---------------------	|--------------	|----------------------	|-----------------	|--------------------------------------------------------------------------------------------	|
+| 16100           	| 98.55%              	| 6            	| vit-base-patch16-224 	| ❌                | [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/02_train_all.ipynb)  |
+| 490             	| 88.62%              	| 6            	| vit-base-patch16-224 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/02_train.ipynb)     	|
 
 ## ➿ Workflow
 This section describes a more detailed workflow for active learning. There are two workflows for active learning that we can use depending on the availability of labeled data.
