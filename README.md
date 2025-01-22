@@ -195,15 +195,15 @@ I decided to stop the active learning loop at 612 labeled images because the per
 - num classes: 10
 - num images: 16100
 
-To start the active learning loop, I labeled 100 images (10 images from each class) and iteratively relabeled the most informative images until I hit 490 labeled images. 
+To start the active learning loop, I labeled 100 images (10 images from each class) and iteratively labeled the most informative images until I hit 609 labeled images. 
 
-I decided to stop the active learning loop at 490 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. You can decide your own stopping point based on your use case.
+I decided to stop the active learning loop at 609 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. You can decide your own stopping point based on your use case.
 
 
 | #Labeled Images 	| Evaluation Accuracy 	| Train Epochs 	| Model                	| Active Learning 	| Source                                                                                     	|
 |----------------:	|--------------------:	|-------------:	|----------------------	|:---------------:	|--------------------------------------------------------------------------------------------	|
 | 16100           	| 98.55%              	| 6            	| vit-base-patch16-224 	| ❌                | [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/03_train_all.ipynb)  |
-| 490             	| 90.14%              	| 6            	| vit-base-patch16-224 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/02_train.ipynb)     	|
+| 609             	| 91.59%              	| 6            	| vit-base-patch16-224 	| ✓               	| [Link](https://github.com/dnth/active-vision/blob/main/nbs/eurosat_rgb/02_train.ipynb)     	|
 
 ## ➿ Workflow
 This section describes a more detailed workflow for active learning. There are two workflows for active learning that we can use depending on the availability of labeled data.
