@@ -153,7 +153,7 @@ The active learning loop is a iterative process and can keep going until you hit
 - You hit a budget.
 - Other criteria.
 
-For this dataset,I decided to stop the active learning loop at 275 labeled images because the performance on the evaluation set is close to the top performing model on the leaderboard. 
+For this dataset, I decided to stop the active learning loop at 275 labeled images because the performance on the evaluation set exceeds the top performing model on the leaderboard. 
 
 
 | #Labeled Images 	| Evaluation Accuracy 	| Train Epochs 	| Model                	| Active Learning 	| Source                                                                              	|
