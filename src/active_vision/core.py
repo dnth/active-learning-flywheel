@@ -281,7 +281,7 @@ class ActiveLearner:
                 return;
             }
             
-            if (e.key === "ArrowUp" || e.key === "Enter") {
+            if (e.key === "ArrowUp") {
                 document.getElementById("submit_btn").click();
             } else if (e.key === "ArrowRight") {
                 document.getElementById("next_btn").click();
@@ -357,7 +357,7 @@ class ActiveLearner:
                     with gr.Row():
                         back_btn = gr.Button("← Previous", elem_id="back_btn")
                         submit_btn = gr.Button(
-                            "Submit (↑/Enter)",
+                            "Submit ↑",
                             variant="primary",
                             elem_id="submit_btn",
                         )
