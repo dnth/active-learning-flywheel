@@ -2,6 +2,7 @@ import pandas as pd
 from loguru import logger
 from fastai.vision.all import *
 import torch
+import numpy as np
 
 import warnings
 from typing import Callable
@@ -189,36 +190,60 @@ class ActiveLearner:
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
 
         if strategy == "least-confidence":
-            logger.info(f"Getting top {num_samples} low confidence samples")
-
+            logger.info(
+                f"Using least confidence strategy to get top {num_samples} samples"
+            )
             df.loc[:, "uncertainty_score"] = 1 - (df["pred_conf"]) / (
                 self.num_classes - (self.num_classes - 1)
             )
 
-            # Sort by descending uncertainty score
-            uncertain_df = df.sort_values(by="uncertainty_score", ascending=False).head(
-                num_samples
-            )
-            return uncertain_df
-
-        # TODO: Implement margin of confidence strategy
         elif strategy == "margin-of-confidence":
-            logger.error("Margin of confidence strategy not implemented")
-            raise NotImplementedError("Margin of confidence strategy not implemented")
+            logger.info(
+                f"Using margin of confidence strategy to get top {num_samples} samples"
+            )
+            if len(df["pred_raw"].iloc[0]) < 2:
+                logger.error("pred_raw has less than 2 elements")
+                raise ValueError("pred_raw has less than 2 elements")
 
-        # TODO: Implement ratio of confidence strategy
+            # Calculate uncertainty score as 1 - (difference between top two predictions)
+            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+                lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
+            )
+
         elif strategy == "ratio-of-confidence":
-            logger.error("Ratio of confidence strategy not implemented")
-            raise NotImplementedError("Ratio of confidence strategy not implemented")
+            logger.info(
+                f"Using ratio of confidence strategy to get top {num_samples} samples"
+            )
+            if len(df["pred_raw"].iloc[0]) < 2:
+                logger.error("pred_raw has less than 2 elements")
+                raise ValueError("pred_raw has less than 2 elements")
 
-        # TODO: Implement entropy strategy
+            # Calculate uncertainty score as ratio of top two predictions
+            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+                lambda x: np.sort(x)[-2] / np.sort(x)[-1]
+            )
+
         elif strategy == "entropy":
-            logger.error("Entropy strategy not implemented")
-            raise NotImplementedError("Entropy strategy not implemented")
+            logger.info(f"Using entropy strategy to get top {num_samples} samples")
+
+            # Calculate uncertainty score as entropy of the prediction
+            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+                lambda x: -np.sum(x * np.log2(x))
+            )
+
+            # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
+            df.loc[:, "uncertainty_score"] = df["uncertainty_score"] / np.log2(
+                self.num_classes
+            )
 
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
+
+        df = df[
+            ["filepath", "pred_label", "pred_conf", "uncertainty_score", "pred_raw"]
+        ]
+        return df.sort_values(by="uncertainty_score", ascending=False).head(num_samples)
 
     def sample_diverse(self, df: pd.DataFrame, num_samples: int):
         """
@@ -258,7 +283,7 @@ class ActiveLearner:
                 return;
             }
             
-            if (e.key === "ArrowUp" || e.key === "Enter") {
+            if (e.key === "ArrowUp") {
                 document.getElementById("submit_btn").click();
             } else if (e.key === "ArrowRight") {
                 document.getElementById("next_btn").click();
@@ -284,7 +309,7 @@ class ActiveLearner:
                             type="filepath",
                             label="Image",
                             value=filepaths[0],
-                            height=500
+                            height=500,
                         )
 
                         # Add bar plot with top 5 predictions
@@ -334,7 +359,7 @@ class ActiveLearner:
                     with gr.Row():
                         back_btn = gr.Button("← Previous", elem_id="back_btn")
                         submit_btn = gr.Button(
-                            "Submit (↑/Enter)",
+                            "Submit ↑",
                             variant="primary",
                             elem_id="submit_btn",
                         )
@@ -344,8 +369,25 @@ class ActiveLearner:
                         minimum=0,
                         maximum=len(filepaths) - 1,
                         value=0,
+                        step=1,
                         label="Progress",
-                        interactive=False,
+                        interactive=True,
+                    )
+
+                    # Add event handler for slider changes
+                    progress.change(
+                        fn=lambda idx: navigate(idx, 0),
+                        inputs=[progress],
+                        outputs=[
+                            filename,
+                            image,
+                            pred_label,
+                            pred_conf,
+                            category,
+                            current_index,
+                            progress,
+                            pred_plot,
+                        ],
                     )
 
                     finish_btn = gr.Button("Finish Labeling", variant="primary")
@@ -490,18 +532,28 @@ class ActiveLearner:
                 current_idx = int(current_idx)
 
                 if selected_category is None:
-                    plot_data = None if "pred_raw" not in df.columns else pd.DataFrame(
-                        {
-                            "class": self.class_names,
-                            "probability": df["pred_raw"].iloc[current_idx],
-                        }
-                    ).nlargest(5, "probability")
+                    plot_data = (
+                        None
+                        if "pred_raw" not in df.columns
+                        else pd.DataFrame(
+                            {
+                                "class": self.class_names,
+                                "probability": df["pred_raw"].iloc[current_idx],
+                            }
+                        ).nlargest(5, "probability")
+                    )
                     return (
                         filepaths[current_idx],
                         filepaths[current_idx],
-                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
-                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else "",
+                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        if "pred_conf" in df.columns
+                        else "",
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else None,
                         current_idx,
                         current_idx,
                         plot_data,
@@ -514,35 +566,55 @@ class ActiveLearner:
                 # Move to next image if not at the end
                 next_idx = current_idx + 1
                 if next_idx >= len(filepaths):
-                    plot_data = None if "pred_raw" not in df.columns else pd.DataFrame(
-                        {
-                            "class": self.class_names,
-                            "probability": df["pred_raw"].iloc[current_idx],
-                        }
-                    ).nlargest(5, "probability")
+                    plot_data = (
+                        None
+                        if "pred_raw" not in df.columns
+                        else pd.DataFrame(
+                            {
+                                "class": self.class_names,
+                                "probability": df["pred_raw"].iloc[current_idx],
+                            }
+                        ).nlargest(5, "probability")
+                    )
                     return (
                         filepaths[current_idx],
                         filepaths[current_idx],
-                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}" if "pred_conf" in df.columns else "",
-                        df["pred_label"].iloc[current_idx] if "pred_label" in df.columns else None,
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else "",
+                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        if "pred_conf" in df.columns
+                        else "",
+                        df["pred_label"].iloc[current_idx]
+                        if "pred_label" in df.columns
+                        else None,
                         current_idx,
                         current_idx,
                         plot_data,
                     )
 
-                plot_data = None if "pred_raw" not in df.columns else pd.DataFrame(
-                    {
-                        "class": self.class_names,
-                        "probability": df["pred_raw"].iloc[next_idx],
-                    }
-                ).nlargest(5, "probability")
+                plot_data = (
+                    None
+                    if "pred_raw" not in df.columns
+                    else pd.DataFrame(
+                        {
+                            "class": self.class_names,
+                            "probability": df["pred_raw"].iloc[next_idx],
+                        }
+                    ).nlargest(5, "probability")
+                )
                 return (
                     filepaths[next_idx],
                     filepaths[next_idx],
-                    df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else "",
-                    f"{df['pred_conf'].iloc[next_idx]:.2%}" if "pred_conf" in df.columns else "",
-                    df["pred_label"].iloc[next_idx] if "pred_label" in df.columns else None,
+                    df["pred_label"].iloc[next_idx]
+                    if "pred_label" in df.columns
+                    else "",
+                    f"{df['pred_conf'].iloc[next_idx]:.2%}"
+                    if "pred_conf" in df.columns
+                    else "",
+                    df["pred_label"].iloc[next_idx]
+                    if "pred_label" in df.columns
+                    else None,
                     next_idx,
                     next_idx,
                     plot_data,
