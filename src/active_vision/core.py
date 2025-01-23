@@ -193,16 +193,9 @@ class ActiveLearner:
             logger.info(
                 f"Using least confidence strategy to get top {num_samples} samples"
             )
-
             df.loc[:, "uncertainty_score"] = 1 - (df["pred_conf"]) / (
                 self.num_classes - (self.num_classes - 1)
             )
-
-            # Sort by descending uncertainty score
-            uncertain_df = df.sort_values(by="uncertainty_score", ascending=False).head(
-                num_samples
-            )
-            return uncertain_df
 
         elif strategy == "margin-of-confidence":
             if len(df["pred_raw"].iloc[0]) < 2:
@@ -212,13 +205,9 @@ class ActiveLearner:
             logger.info(
                 f"Using margin of confidence strategy to get top {num_samples} samples"
             )
-
             # Calculate uncertainty score as 1 - (difference between top two predictions)
             df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
                 lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
-            )
-            return df.sort_values(by="uncertainty_score", ascending=False).head(
-                num_samples
             )
 
         elif strategy == "ratio-of-confidence":
@@ -230,11 +219,7 @@ class ActiveLearner:
             df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
                 lambda x: np.sort(x)[-2] / np.sort(x)[-1]
             )
-            return df.sort_values(by="uncertainty_score", ascending=False).head(
-                num_samples
-            )
 
-        # TODO: Implement entropy strategy
         elif strategy == "entropy":
             logger.error("Entropy strategy not implemented")
             raise NotImplementedError("Entropy strategy not implemented")
@@ -242,6 +227,9 @@ class ActiveLearner:
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
+        
+        df = df[["filepath", "pred_label", "pred_conf", "uncertainty_score", "pred_raw"]]
+        return df.sort_values(by="uncertainty_score", ascending=False).head(num_samples)
 
     def sample_diverse(self, df: pd.DataFrame, num_samples: int):
         """
