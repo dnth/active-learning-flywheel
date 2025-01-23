@@ -136,16 +136,24 @@ class ActiveLearner:
         """
         logger.info(f"Running inference on {len(filepaths)} samples")
         test_dl = self.dls.test_dl(filepaths, bs=batch_size)
-        preds, _, cls_preds = self.learn.get_preds(dl=test_dl, with_decoded=True)
+
+        def identity(x):
+            return x
+
+        logits, _, class_idxs = self.learn.get_preds(
+            dl=test_dl, with_decoded=True, act=identity
+        )
 
         self.pred_df = pd.DataFrame(
             {
                 "filepath": filepaths,
-                "pred_label": [self.learn.dls.vocab[i] for i in cls_preds.numpy()],
-                "pred_conf": torch.max(preds, dim=1)[0].numpy(),
-                "pred_raw": preds.numpy().tolist(),
+                "pred_label": [self.learn.dls.vocab[i] for i in class_idxs.numpy()],
+                "pred_conf": torch.max(F.softmax(logits, dim=1), dim=1)[0].numpy(),
+                "probs": F.softmax(logits, dim=1).numpy().tolist(),
+                "logits": logits.numpy().tolist(),
             }
         )
+
         return self.pred_df
 
     def evaluate(
@@ -193,7 +201,7 @@ class ActiveLearner:
             logger.info(
                 f"Using least confidence strategy to get top {num_samples} samples"
             )
-            df.loc[:, "uncertainty_score"] = 1 - (df["pred_conf"]) / (
+            df.loc[:, "score"] = 1 - (df["pred_conf"]) / (
                 self.num_classes - (self.num_classes - 1)
             )
 
@@ -201,12 +209,12 @@ class ActiveLearner:
             logger.info(
                 f"Using margin of confidence strategy to get top {num_samples} samples"
             )
-            if len(df["pred_raw"].iloc[0]) < 2:
-                logger.error("pred_raw has less than 2 elements")
-                raise ValueError("pred_raw has less than 2 elements")
+            if len(df["probs"].iloc[0]) < 2:
+                logger.error("probs has less than 2 elements")
+                raise ValueError("probs has less than 2 elements")
 
             # Calculate uncertainty score as 1 - (difference between top two predictions)
-            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+            df.loc[:, "score"] = df["probs"].apply(
                 lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
             )
 
@@ -214,12 +222,12 @@ class ActiveLearner:
             logger.info(
                 f"Using ratio of confidence strategy to get top {num_samples} samples"
             )
-            if len(df["pred_raw"].iloc[0]) < 2:
-                logger.error("pred_raw has less than 2 elements")
-                raise ValueError("pred_raw has less than 2 elements")
+            if len(df["probs"].iloc[0]) < 2:
+                logger.error("probs has less than 2 elements")
+                raise ValueError("probs has less than 2 elements")
 
             # Calculate uncertainty score as ratio of top two predictions
-            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+            df.loc[:, "score"] = df["probs"].apply(
                 lambda x: np.sort(x)[-2] / np.sort(x)[-1]
             )
 
@@ -227,12 +235,12 @@ class ActiveLearner:
             logger.info(f"Using entropy strategy to get top {num_samples} samples")
 
             # Calculate uncertainty score as entropy of the prediction
-            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+            df.loc[:, "score"] = df["probs"].apply(
                 lambda x: -np.sum(x * np.log2(x))
             )
 
             # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
-            df.loc[:, "uncertainty_score"] = df["uncertainty_score"] / np.log2(
+            df.loc[:, "score"] = df["score"] / np.log2(
                 self.num_classes
             )
 
@@ -241,9 +249,9 @@ class ActiveLearner:
             raise ValueError(f"Unknown strategy: {strategy}")
 
         df = df[
-            ["filepath", "pred_label", "pred_conf", "uncertainty_score", "pred_raw"]
+            ["filepath", "pred_label", "pred_conf", "score", "probs"]
         ]
-        return df.sort_values(by="uncertainty_score", ascending=False).head(num_samples)
+        return df.sort_values(by="score", ascending=False).head(num_samples)
 
     def sample_diverse(self, df: pd.DataFrame, num_samples: int):
         """
@@ -320,11 +328,11 @@ class ActiveLearner:
                                 title="Top 5 Predictions",
                                 x_lim=[0, 1],
                                 value=None
-                                if "pred_raw" not in df.columns
+                                if "probs" not in df.columns
                                 else pd.DataFrame(
                                     {
                                         "class": self.class_names,
-                                        "probability": df["pred_raw"].iloc[0],
+                                        "probability": df["probs"].iloc[0],
                                     }
                                 ).nlargest(5, "probability"),
                             )
@@ -476,11 +484,11 @@ class ActiveLearner:
                 if 0 <= next_idx < len(filepaths):
                     plot_data = (
                         None
-                        if "pred_raw" not in df.columns
+                        if "probs" not in df.columns
                         else pd.DataFrame(
                             {
                                 "class": self.class_names,
-                                "probability": df["pred_raw"].iloc[next_idx],
+                                "probability": df["probs"].iloc[next_idx],
                             }
                         ).nlargest(5, "probability")
                     )
@@ -502,11 +510,11 @@ class ActiveLearner:
                     )
                 plot_data = (
                     None
-                    if "pred_raw" not in df.columns
+                    if "probs" not in df.columns
                     else pd.DataFrame(
                         {
                             "class": self.class_names,
-                            "probability": df["pred_raw"].iloc[current_idx],
+                            "probability": df["probs"].iloc[current_idx],
                         }
                     ).nlargest(5, "probability")
                 )
@@ -534,11 +542,11 @@ class ActiveLearner:
                 if selected_category is None:
                     plot_data = (
                         None
-                        if "pred_raw" not in df.columns
+                        if "probs" not in df.columns
                         else pd.DataFrame(
                             {
                                 "class": self.class_names,
-                                "probability": df["pred_raw"].iloc[current_idx],
+                                "probability": df["probs"].iloc[current_idx],
                             }
                         ).nlargest(5, "probability")
                     )
@@ -568,11 +576,11 @@ class ActiveLearner:
                 if next_idx >= len(filepaths):
                     plot_data = (
                         None
-                        if "pred_raw" not in df.columns
+                        if "probs" not in df.columns
                         else pd.DataFrame(
                             {
                                 "class": self.class_names,
-                                "probability": df["pred_raw"].iloc[current_idx],
+                                "probability": df["probs"].iloc[current_idx],
                             }
                         ).nlargest(5, "probability")
                     )
@@ -595,11 +603,11 @@ class ActiveLearner:
 
                 plot_data = (
                     None
-                    if "pred_raw" not in df.columns
+                    if "probs" not in df.columns
                     else pd.DataFrame(
                         {
                             "class": self.class_names,
-                            "probability": df["pred_raw"].iloc[next_idx],
+                            "probability": df["probs"].iloc[next_idx],
                         }
                     ).nlargest(5, "probability")
                 )
