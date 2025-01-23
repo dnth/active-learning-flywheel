@@ -367,8 +367,25 @@ class ActiveLearner:
                         minimum=0,
                         maximum=len(filepaths) - 1,
                         value=0,
+                        step=1,
                         label="Progress",
-                        interactive=False,
+                        interactive=True,
+                    )
+
+                    # Add event handler for slider changes
+                    progress.change(
+                        fn=lambda idx: navigate(idx, 0),
+                        inputs=[progress],
+                        outputs=[
+                            filename,
+                            image,
+                            pred_label,
+                            pred_conf,
+                            category,
+                            current_index,
+                            progress,
+                            pred_plot,
+                        ],
                     )
 
                     finish_btn = gr.Button("Finish Labeling", variant="primary")
