@@ -28,9 +28,9 @@ The goal of this project is to create a framework for the active learning loop f
 
 Uncertainty Sampling:
 - [X] Least confidence
-- [ ] Margin of confidence
-- [ ] Ratio of confidence
-- [ ] Entropy
+- [X] Margin of confidence
+- [X] Ratio of confidence
+- [X] Entropy
 
 Diverse Sampling:
 - [X] Random sampling
