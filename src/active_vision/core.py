@@ -198,19 +198,22 @@ class ActiveLearner:
             )
 
         elif strategy == "margin-of-confidence":
+            logger.info(
+                f"Using margin of confidence strategy to get top {num_samples} samples"
+            )
             if len(df["pred_raw"].iloc[0]) < 2:
                 logger.error("pred_raw has less than 2 elements")
                 raise ValueError("pred_raw has less than 2 elements")
 
-            logger.info(
-                f"Using margin of confidence strategy to get top {num_samples} samples"
-            )
             # Calculate uncertainty score as 1 - (difference between top two predictions)
             df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
                 lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
             )
 
         elif strategy == "ratio-of-confidence":
+            logger.info(
+                f"Using ratio of confidence strategy to get top {num_samples} samples"
+            )
             if len(df["pred_raw"].iloc[0]) < 2:
                 logger.error("pred_raw has less than 2 elements")
                 raise ValueError("pred_raw has less than 2 elements")
@@ -221,14 +224,25 @@ class ActiveLearner:
             )
 
         elif strategy == "entropy":
-            logger.error("Entropy strategy not implemented")
-            raise NotImplementedError("Entropy strategy not implemented")
+            logger.info(f"Using entropy strategy to get top {num_samples} samples")
+
+            # Calculate uncertainty score as entropy of the prediction
+            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+                lambda x: -np.sum(x * np.log2(x))
+            )
+
+            # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
+            df.loc[:, "uncertainty_score"] = df["uncertainty_score"] / np.log2(
+                self.num_classes
+            )
 
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
-        
-        df = df[["filepath", "pred_label", "pred_conf", "uncertainty_score", "pred_raw"]]
+
+        df = df[
+            ["filepath", "pred_label", "pred_conf", "uncertainty_score", "pred_raw"]
+        ]
         return df.sort_values(by="uncertainty_score", ascending=False).head(num_samples)
 
     def sample_diverse(self, df: pd.DataFrame, num_samples: int):
