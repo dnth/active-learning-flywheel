@@ -34,7 +34,8 @@ Uncertainty Sampling:
 
 Diverse Sampling:
 - [X] Random sampling
-- [ ] Model-based outlier
+- [X] Model-based outlier
+- [ ] Embeddings-based outlier
 - [ ] Cluster-based
 - [ ] Representative
 

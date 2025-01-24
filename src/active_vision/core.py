@@ -3,6 +3,7 @@ from loguru import logger
 from fastai.vision.all import *
 import torch
 import numpy as np
+import bisect
 
 import warnings
 from typing import Callable
@@ -56,7 +57,6 @@ class ActiveLearner:
         learner_path: str = None,
     ):
         logger.info(f"Loading dataset from {filepath_col} and {label_col}")
-        self.train_set = df.copy()
 
         logger.info("Creating dataloaders")
         self.dls = ImageDataLoaders.from_df(
@@ -85,6 +85,8 @@ class ActiveLearner:
                 self.dls, self.model, metrics=accuracy
             ).to_fp16()
 
+        self.train_set = self.learn.dls.train_ds.items
+        self.valid_set = self.learn.dls.valid_ds.items
         self.class_names = self.dls.vocab
         self.num_classes = self.dls.c
         logger.info("Done. Ready to train.")
@@ -136,16 +138,24 @@ class ActiveLearner:
         """
         logger.info(f"Running inference on {len(filepaths)} samples")
         test_dl = self.dls.test_dl(filepaths, bs=batch_size)
-        preds, _, cls_preds = self.learn.get_preds(dl=test_dl, with_decoded=True)
+
+        def identity(x):
+            return x
+
+        logits, _, class_idxs = self.learn.get_preds(
+            dl=test_dl, with_decoded=True, act=identity
+        )
 
         self.pred_df = pd.DataFrame(
             {
                 "filepath": filepaths,
-                "pred_label": [self.learn.dls.vocab[i] for i in cls_preds.numpy()],
-                "pred_conf": torch.max(preds, dim=1)[0].numpy(),
-                "pred_raw": preds.numpy().tolist(),
+                "pred_label": [self.learn.dls.vocab[i] for i in class_idxs.numpy()],
+                "pred_conf": torch.max(F.softmax(logits, dim=1), dim=1)[0].numpy(),
+                "probs": F.softmax(logits, dim=1).numpy().tolist(),
+                "logits": logits.numpy().tolist(),
             }
         )
+
         return self.pred_df
 
     def evaluate(
@@ -193,7 +203,7 @@ class ActiveLearner:
             logger.info(
                 f"Using least confidence strategy to get top {num_samples} samples"
             )
-            df.loc[:, "uncertainty_score"] = 1 - (df["pred_conf"]) / (
+            df.loc[:, "score"] = 1 - (df["pred_conf"]) / (
                 self.num_classes - (self.num_classes - 1)
             )
 
@@ -201,12 +211,12 @@ class ActiveLearner:
             logger.info(
                 f"Using margin of confidence strategy to get top {num_samples} samples"
             )
-            if len(df["pred_raw"].iloc[0]) < 2:
-                logger.error("pred_raw has less than 2 elements")
-                raise ValueError("pred_raw has less than 2 elements")
+            if len(df["probs"].iloc[0]) < 2:
+                logger.error("probs has less than 2 elements")
+                raise ValueError("probs has less than 2 elements")
 
             # Calculate uncertainty score as 1 - (difference between top two predictions)
-            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+            df.loc[:, "score"] = df["probs"].apply(
                 lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
             )
 
@@ -214,12 +224,12 @@ class ActiveLearner:
             logger.info(
                 f"Using ratio of confidence strategy to get top {num_samples} samples"
             )
-            if len(df["pred_raw"].iloc[0]) < 2:
-                logger.error("pred_raw has less than 2 elements")
-                raise ValueError("pred_raw has less than 2 elements")
+            if len(df["probs"].iloc[0]) < 2:
+                logger.error("probs has less than 2 elements")
+                raise ValueError("probs has less than 2 elements")
 
             # Calculate uncertainty score as ratio of top two predictions
-            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
+            df.loc[:, "score"] = df["probs"].apply(
                 lambda x: np.sort(x)[-2] / np.sort(x)[-1]
             )
 
@@ -227,25 +237,25 @@ class ActiveLearner:
             logger.info(f"Using entropy strategy to get top {num_samples} samples")
 
             # Calculate uncertainty score as entropy of the prediction
-            df.loc[:, "uncertainty_score"] = df["pred_raw"].apply(
-                lambda x: -np.sum(x * np.log2(x))
-            )
+            df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
 
             # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
-            df.loc[:, "uncertainty_score"] = df["uncertainty_score"] / np.log2(
-                self.num_classes
-            )
+            df.loc[:, "score"] = df["score"] / np.log2(self.num_classes)
 
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        df = df[
-            ["filepath", "pred_label", "pred_conf", "uncertainty_score", "pred_raw"]
-        ]
-        return df.sort_values(by="uncertainty_score", ascending=False).head(num_samples)
+        df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
 
-    def sample_diverse(self, df: pd.DataFrame, num_samples: int):
+        df["score"] = df["score"].map("{:.4f}".format)
+        df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+
+        return df.sort_values(by="score", ascending=False).head(num_samples)
+
+    def sample_diverse(
+        self, df: pd.DataFrame, num_samples: int, strategy: str = "model-based-outlier"
+    ):
         """
         Sample top `num_samples` diverse samples. Returns a df with filepaths and predicted labels, and confidence scores.
 
@@ -253,9 +263,63 @@ class ActiveLearner:
         - model-based-outlier: Get top `num_samples` samples with lowest activation of the model's last layer.
         - cluster-based: Get top `num_samples` samples with the highest distance to the nearest neighbor.
         - representative: Get top `num_samples` samples with the highest distance to the centroid of the training set.
+
         """
-        logger.error("Diverse sampling strategy not implemented")
-        raise NotImplementedError("Diverse sampling strategy not implemented")
+        # Remove samples that is already in the training set
+        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+
+        if strategy == "model-based-outlier":
+            logger.info(
+                f"Using model-based outlier strategy to get top {num_samples} samples"
+            )
+
+            # Get the activations for all items in the validation set.
+            valid_set_preds = self.predict(self.valid_set["filepath"].tolist())
+
+            # Store logits for each class in a list instead of dict
+            validation_class_logits = [
+                sorted(
+                    valid_set_preds["logits"].apply(lambda x: x[i]).tolist(),
+                    reverse=True,
+                )
+                for i in range(self.num_classes)
+            ]
+
+            # Get the logits for the unlabeled set
+            unlabeled_set_preds = self.predict(df["filepath"].tolist())
+
+            # For each element in the unlabeled set logits, compare it to the validation set ranked logits and get the position in the ranked logits
+            unlabeled_set_logits = []
+            for idx, row in unlabeled_set_preds.iterrows():
+                logits = row["logits"]
+                # For each class, find where this sample's logit would rank in the validation set
+                ranks = []
+                for class_idx in range(self.num_classes):
+                    class_logit = logits[class_idx]
+                    ranked_logits = validation_class_logits[
+                        class_idx
+                    ]  # Access by index instead of dict key
+                    # Find position where this logit would be inserted to maintain sorted order
+                    # Now using bisect_left directly since logits are sorted high to low
+                    rank = bisect.bisect_left(ranked_logits, class_logit)
+                    ranks.append(
+                        rank / len(ranked_logits)
+                    )  # Normalize rank to 0-1 range
+
+                # Average rank across all classes - lower means more outlier-like
+                avg_rank = np.mean(ranks)
+                unlabeled_set_logits.append(avg_rank)
+
+            # Add outlier scores to dataframe
+            df.loc[:, "score"] = unlabeled_set_logits
+
+            df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
+
+            df["score"] = df["score"].map("{:.4f}".format)
+            df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+
+            # Sort by score ascending higher rank = more outlier-like compared to the validation set
+            return df.sort_values(by="score", ascending=False).head(num_samples)
 
     def sample_random(self, df: pd.DataFrame, num_samples: int, seed: int = None):
         """
@@ -309,7 +373,7 @@ class ActiveLearner:
                             type="filepath",
                             label="Image",
                             value=filepaths[0],
-                            height=500,
+                            height=510,
                         )
 
                         # Add bar plot with top 5 predictions
@@ -320,11 +384,11 @@ class ActiveLearner:
                                 title="Top 5 Predictions",
                                 x_lim=[0, 1],
                                 value=None
-                                if "pred_raw" not in df.columns
+                                if "probs" not in df.columns
                                 else pd.DataFrame(
                                     {
                                         "class": self.class_names,
-                                        "probability": df["pred_raw"].iloc[0],
+                                        "probability": df["probs"].iloc[0],
                                     }
                                 ).nlargest(5, "probability"),
                             )
@@ -332,18 +396,27 @@ class ActiveLearner:
                             filename = gr.Textbox(
                                 label="Filename", value=filepaths[0], interactive=False
                             )
+                            with gr.Row():
+                                pred_label = gr.Textbox(
+                                    label="Predicted Label",
+                                    value=df["pred_label"].iloc[0]
+                                    if "pred_label" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
 
-                            pred_label = gr.Textbox(
-                                label="Predicted Label",
-                                value=df["pred_label"].iloc[0]
-                                if "pred_label" in df.columns
-                                else "",
-                                interactive=False,
-                            )
-                            pred_conf = gr.Textbox(
-                                label="Confidence",
-                                value=f"{df['pred_conf'].iloc[0]:.2%}"
-                                if "pred_conf" in df.columns
+                                pred_conf = gr.Textbox(
+                                    label="Confidence",
+                                    value=df["pred_conf"].iloc[0]
+                                    if "pred_conf" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
+
+                            sample_score = gr.Textbox(
+                                label="Sample Score [0-1] - Indicates how informative the sample is. Higher means more informative.",
+                                value=df["score"].iloc[0]
+                                if "score" in df.columns
                                 else "",
                                 interactive=False,
                             )
@@ -387,6 +460,7 @@ class ActiveLearner:
                             current_index,
                             progress,
                             pred_plot,
+                            sample_score,
                         ],
                     )
 
@@ -476,11 +550,11 @@ class ActiveLearner:
                 if 0 <= next_idx < len(filepaths):
                     plot_data = (
                         None
-                        if "pred_raw" not in df.columns
+                        if "probs" not in df.columns
                         else pd.DataFrame(
                             {
                                 "class": self.class_names,
-                                "probability": df["pred_raw"].iloc[next_idx],
+                                "probability": df["probs"].iloc[next_idx],
                             }
                         ).nlargest(5, "probability")
                     )
@@ -490,7 +564,7 @@ class ActiveLearner:
                         df["pred_label"].iloc[next_idx]
                         if "pred_label" in df.columns
                         else "",
-                        f"{df['pred_conf'].iloc[next_idx]:.2%}"
+                        df["pred_conf"].iloc[next_idx]
                         if "pred_conf" in df.columns
                         else "",
                         df["pred_label"].iloc[next_idx]
@@ -499,14 +573,15 @@ class ActiveLearner:
                         next_idx,
                         next_idx,
                         plot_data,
+                        df["score"].iloc[next_idx] if "score" in df.columns else "",
                     )
                 plot_data = (
                     None
-                    if "pred_raw" not in df.columns
+                    if "probs" not in df.columns
                     else pd.DataFrame(
                         {
                             "class": self.class_names,
-                            "probability": df["pred_raw"].iloc[current_idx],
+                            "probability": df["probs"].iloc[current_idx],
                         }
                     ).nlargest(5, "probability")
                 )
@@ -516,7 +591,7 @@ class ActiveLearner:
                     df["pred_label"].iloc[current_idx]
                     if "pred_label" in df.columns
                     else "",
-                    f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                    df["pred_conf"].iloc[current_idx]
                     if "pred_conf" in df.columns
                     else "",
                     df["pred_label"].iloc[current_idx]
@@ -525,6 +600,7 @@ class ActiveLearner:
                     current_idx,
                     current_idx,
                     plot_data,
+                    df["score"].iloc[current_idx] if "score" in df.columns else "",
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -534,11 +610,11 @@ class ActiveLearner:
                 if selected_category is None:
                     plot_data = (
                         None
-                        if "pred_raw" not in df.columns
+                        if "probs" not in df.columns
                         else pd.DataFrame(
                             {
                                 "class": self.class_names,
-                                "probability": df["pred_raw"].iloc[current_idx],
+                                "probability": df["probs"].iloc[current_idx],
                             }
                         ).nlargest(5, "probability")
                     )
@@ -548,7 +624,7 @@ class ActiveLearner:
                         df["pred_label"].iloc[current_idx]
                         if "pred_label" in df.columns
                         else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        df["pred_conf"].iloc[current_idx]
                         if "pred_conf" in df.columns
                         else "",
                         df["pred_label"].iloc[current_idx]
@@ -557,6 +633,7 @@ class ActiveLearner:
                         current_idx,
                         current_idx,
                         plot_data,
+                        df["score"].iloc[current_idx] if "score" in df.columns else "",
                     )
 
                 # Save the current annotation
@@ -568,11 +645,11 @@ class ActiveLearner:
                 if next_idx >= len(filepaths):
                     plot_data = (
                         None
-                        if "pred_raw" not in df.columns
+                        if "probs" not in df.columns
                         else pd.DataFrame(
                             {
                                 "class": self.class_names,
-                                "probability": df["pred_raw"].iloc[current_idx],
+                                "probability": df["probs"].iloc[current_idx],
                             }
                         ).nlargest(5, "probability")
                     )
@@ -582,7 +659,7 @@ class ActiveLearner:
                         df["pred_label"].iloc[current_idx]
                         if "pred_label" in df.columns
                         else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        df["pred_conf"].iloc[current_idx]
                         if "pred_conf" in df.columns
                         else "",
                         df["pred_label"].iloc[current_idx]
@@ -591,15 +668,16 @@ class ActiveLearner:
                         current_idx,
                         current_idx,
                         plot_data,
+                        df["score"].iloc[current_idx] if "score" in df.columns else "",
                     )
 
                 plot_data = (
                     None
-                    if "pred_raw" not in df.columns
+                    if "probs" not in df.columns
                     else pd.DataFrame(
                         {
                             "class": self.class_names,
-                            "probability": df["pred_raw"].iloc[next_idx],
+                            "probability": df["probs"].iloc[next_idx],
                         }
                     ).nlargest(5, "probability")
                 )
@@ -609,15 +687,14 @@ class ActiveLearner:
                     df["pred_label"].iloc[next_idx]
                     if "pred_label" in df.columns
                     else "",
-                    f"{df['pred_conf'].iloc[next_idx]:.2%}"
-                    if "pred_conf" in df.columns
-                    else "",
+                    df["pred_conf"].iloc[next_idx] if "pred_conf" in df.columns else "",
                     df["pred_label"].iloc[next_idx]
                     if "pred_label" in df.columns
                     else None,
                     next_idx,
                     next_idx,
                     plot_data,
+                    df["score"].iloc[next_idx] if "score" in df.columns else "",
                 )
 
             def convert_csv_to_parquet():
@@ -643,6 +720,7 @@ class ActiveLearner:
                     current_index,
                     progress,
                     pred_plot,
+                    sample_score,
                 ],
             )
 
@@ -658,6 +736,7 @@ class ActiveLearner:
                     current_index,
                     progress,
                     pred_plot,
+                    sample_score,
                 ],
             )
 
@@ -673,6 +752,7 @@ class ActiveLearner:
                     current_index,
                     progress,
                     pred_plot,
+                    sample_score,
                 ],
             )
 
