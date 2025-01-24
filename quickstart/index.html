@@ -352,6 +352,24 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#train" class="md-nav__link">
+    <span class="md-ellipsis">
+      Train
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluate
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -406,6 +424,24 @@
   <a href="#create-an-activelearner" class="md-nav__link">
     <span class="md-ellipsis">
       Create an ActiveLearner
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train" class="md-nav__link">
+    <span class="md-ellipsis">
+      Train
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluate
     </span>
   </a>
   
@@ -533,19 +569,337 @@ Name: count, dtype: int64
 
 <span class="n">al</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span><span class="n">resnet18</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-01-24 23:19:24.759 | INFO     | active_vision.core:load_model:41 - Loading fastai model resnet18
+<div class="highlight"><pre><span></span><code>2025-01-25 00:01:47.070 | INFO     | active_vision.core:load_model:41 - Loading fastai model resnet18
 </code></pre></div>
 <p>We can load the initial samples into the <code>ActiveLearner</code> object.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">initial_samples</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">initial_samples</span><span class="p">,</span> 
+                <span class="n">filepath_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span> 
+                <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> 
+                <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-01-24 23:19:24.764 | INFO     | active_vision.core:load_dataset:59 - Loading dataset from filepath and label
-2025-01-24 23:19:24.766 | INFO     | active_vision.core:load_dataset:61 - Creating dataloaders
-2025-01-24 23:19:24.953 | INFO     | active_vision.core:load_dataset:83 - Creating learner
-2025-01-24 23:19:25.081 | INFO     | active_vision.core:load_dataset:92 - Done. Ready to train.
+<div class="highlight"><pre><span></span><code>2025-01-25 00:01:47.075 | INFO     | active_vision.core:load_dataset:59 - Loading dataset from filepath and label
+2025-01-25 00:01:47.075 | INFO     | active_vision.core:load_dataset:61 - Creating dataloaders
+2025-01-25 00:01:47.321 | INFO     | active_vision.core:load_dataset:83 - Creating learner
+2025-01-25 00:01:47.473 | INFO     | active_vision.core:load_dataset:92 - Done. Ready to train.
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
 </code></pre></div>
 <p><img alt="png" src="../quickstart_files/quickstart_9_0.png" /></p>
+<p>You can inspect the train and validation sets too.</p>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train_set</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>51</th>
+      <td>data/imagenette/7/05378.jpg</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>83</th>
+      <td>data/imagenette/6/07797.jpg</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>97</th>
+      <td>data/imagenette/5/08999.jpg</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>75</th>
+      <td>data/imagenette/8/06618.jpg</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>data/imagenette/2/00420.jpg</td>
+      <td>cassette player</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">valid_set</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/2/00136.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>64</th>
+      <td>data/imagenette/1/06574.jpg</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>40</th>
+      <td>data/imagenette/9/04652.jpg</td>
+      <td>parachute</td>
+    </tr>
+    <tr>
+      <th>54</th>
+      <td>data/imagenette/7/05488.jpg</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>data/imagenette/3/02629.jpg</td>
+      <td>chain saw</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="train">Train<a class="headerlink" href="#train" title="Permanent link">&para;</a></h2>
+<p>Now that we have the initial dataset, we can train the model.</p>
+<p>But first, let's check the optimal learning rate for the model.</p>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">lr_find</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>2025-01-25 00:01:48.042 | INFO     | active_vision.core:lr_find:115 - Finding optimal learning rate
+</code></pre></div>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+<div class="highlight"><pre><span></span><code>2025-01-25 00:01:54.456 | INFO     | active_vision.core:lr_find:117 - Optimal learning rate: 0.00363078061491251
+</code></pre></div>
+<p><img alt="png" src="../quickstart_files/quickstart_14_4.png" /></p>
+<p>Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.</p>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>2025-01-25 00:01:54.717 | INFO     | active_vision.core:train:128 - Training head for 1 epochs
+2025-01-25 00:01:54.718 | INFO     | active_vision.core:train:129 - Training model end-to-end for 3 epochs
+2025-01-25 00:01:54.718 | INFO     | active_vision.core:train:130 - Learning rate: 0.005 with one-cycle learning rate scheduler
+</code></pre></div>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>2.871501</td>
+      <td>0.771290</td>
+      <td>0.750000</td>
+      <td>00:01</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img alt="png" src="../quickstart_files/quickstart_16_3.png" /></p>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0.460057</td>
+      <td>0.409270</td>
+      <td>0.850000</td>
+      <td>00:01</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0.370149</td>
+      <td>0.635701</td>
+      <td>0.800000</td>
+      <td>00:01</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>0.286742</td>
+      <td>0.720829</td>
+      <td>0.800000</td>
+      <td>00:01</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img alt="png" src="../quickstart_files/quickstart_16_6.png" /></p>
+<h2 id="evaluate">Evaluate<a class="headerlink" href="#evaluate" title="Permanent link">&para;</a></h2>
+<p>Now that we have a trained model, we can evaluate it on the evaluation set.</p>
+<div class="highlight"><pre><span></span><code><span class="n">evaluation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;imagenette/evaluation_samples.parquet&quot;</span><span class="p">)</span>
+<span class="n">evaluation_df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/2/00000.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/2/00001.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/2/00002.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/2/00003.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/2/00004.jpg</td>
+      <td>cassette player</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">evaluation_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+</code></pre></div>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+<div class="highlight"><pre><span></span><code>2025-01-25 00:02:04.166 | INFO     | active_vision.core:evaluate:183 - Accuracy: 89.22%
+
+
+
+
+
+0.8922292993630573
+</code></pre></div>
 <div class="highlight"><pre><span></span><code>
 </code></pre></div>
 
