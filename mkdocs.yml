@@ -51,9 +51,6 @@ plugins:
           allow_errors: false
           ignore: ["conf.py"]
           execute_ignore: ["*ignore.ipynb"]
-    - gen-files
-        scripts:
-            - docs/scripts/gen_homepage.py
           
 markdown_extensions:
     - admonition
