@@ -1,0 +1,1 @@
+{"config":{"lang":["en"],"separator":"[\\s\\-]+","pipeline":["stopWordFilter"]},"docs":[{"location":"","title":"Active Vision","text":"<p>Active learning for computer vision.</p>"},{"location":"quickstart/","title":"Quickstart","text":"<p>How to get started with Active Vision.</p>"}]}
