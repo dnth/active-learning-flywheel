@@ -246,7 +246,11 @@ class ActiveLearner:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        df = df[["filepath", "pred_label", "pred_conf", "score", "probs"]]
+        df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
+
+        df["score"] = df["score"].map("{:.4f}".format)
+        df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+
         return df.sort_values(by="score", ascending=False).head(num_samples)
 
     def sample_diverse(
@@ -259,6 +263,7 @@ class ActiveLearner:
         - model-based-outlier: Get top `num_samples` samples with lowest activation of the model's last layer.
         - cluster-based: Get top `num_samples` samples with the highest distance to the nearest neighbor.
         - representative: Get top `num_samples` samples with the highest distance to the centroid of the training set.
+
         """
         # Remove samples that is already in the training set
         df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
@@ -268,20 +273,17 @@ class ActiveLearner:
                 f"Using model-based outlier strategy to get top {num_samples} samples"
             )
 
-            # 1. Get the activations for all items in the validation set.
+            # Get the activations for all items in the validation set.
             valid_set_preds = self.predict(self.valid_set["filepath"].tolist())
 
-            # Get logits for each class
-            class_logits = {
-                f"class_{i}_logits": valid_set_preds["logits"]
-                .apply(lambda x: x[i])
-                .tolist()
+            # Store logits for each class in a list instead of dict
+            validation_class_logits = [
+                sorted(
+                    valid_set_preds["logits"].apply(lambda x: x[i]).tolist(),
+                    reverse=True,
+                )
                 for i in range(self.num_classes)
-            }
-
-            # Sort the logits for each class from highest to lowest
-            for class_idx, logits in class_logits.items():
-                class_logits[class_idx] = sorted(logits, reverse=True)
+            ]
 
             # Get the logits for the unlabeled set
             unlabeled_set_preds = self.predict(df["filepath"].tolist())
@@ -294,7 +296,9 @@ class ActiveLearner:
                 ranks = []
                 for class_idx in range(self.num_classes):
                     class_logit = logits[class_idx]
-                    ranked_logits = class_logits[f"class_{class_idx}_logits"]
+                    ranked_logits = validation_class_logits[
+                        class_idx
+                    ]  # Access by index instead of dict key
                     # Find position where this logit would be inserted to maintain sorted order
                     # Now using bisect_left directly since logits are sorted high to low
                     rank = bisect.bisect_left(ranked_logits, class_logit)
@@ -309,7 +313,10 @@ class ActiveLearner:
             # Add outlier scores to dataframe
             df.loc[:, "score"] = unlabeled_set_logits
 
-            df = df[["filepath", "pred_label", "pred_conf", "score", "probs"]]
+            df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
+
+            df["score"] = df["score"].map("{:.4f}".format)
+            df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
 
             # Sort by score ascending higher rank = more outlier-like compared to the validation set
             return df.sort_values(by="score", ascending=False).head(num_samples)
@@ -399,7 +406,7 @@ class ActiveLearner:
                             )
                             pred_conf = gr.Textbox(
                                 label="Confidence",
-                                value=f"{df['pred_conf'].iloc[0]:.2%}"
+                                value=df["pred_conf"].iloc[0]
                                 if "pred_conf" in df.columns
                                 else "",
                                 interactive=False,
@@ -547,7 +554,7 @@ class ActiveLearner:
                         df["pred_label"].iloc[next_idx]
                         if "pred_label" in df.columns
                         else "",
-                        f"{df['pred_conf'].iloc[next_idx]:.2%}"
+                        df["pred_conf"].iloc[next_idx]
                         if "pred_conf" in df.columns
                         else "",
                         df["pred_label"].iloc[next_idx]
@@ -573,7 +580,7 @@ class ActiveLearner:
                     df["pred_label"].iloc[current_idx]
                     if "pred_label" in df.columns
                     else "",
-                    f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                    df["pred_conf"].iloc[current_idx]
                     if "pred_conf" in df.columns
                     else "",
                     df["pred_label"].iloc[current_idx]
@@ -605,7 +612,7 @@ class ActiveLearner:
                         df["pred_label"].iloc[current_idx]
                         if "pred_label" in df.columns
                         else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        df["pred_conf"].iloc[current_idx]
                         if "pred_conf" in df.columns
                         else "",
                         df["pred_label"].iloc[current_idx]
@@ -639,7 +646,7 @@ class ActiveLearner:
                         df["pred_label"].iloc[current_idx]
                         if "pred_label" in df.columns
                         else "",
-                        f"{df['pred_conf'].iloc[current_idx]:.2%}"
+                        df["pred_conf"].iloc[current_idx]
                         if "pred_conf" in df.columns
                         else "",
                         df["pred_label"].iloc[current_idx]
@@ -666,7 +673,7 @@ class ActiveLearner:
                     df["pred_label"].iloc[next_idx]
                     if "pred_label" in df.columns
                     else "",
-                    f"{df['pred_conf'].iloc[next_idx]:.2%}"
+                    df['pred_conf'].iloc[next_idx]
                     if "pred_conf" in df.columns
                     else "",
                     df["pred_label"].iloc[next_idx]
