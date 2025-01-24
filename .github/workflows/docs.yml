@@ -22,6 +22,8 @@ jobs:
             - name: Generate docs
               run: |
                   cp README.md docs/index.md
-                  jupyter nbconvert nbs/quickstart.ipynb --to markdown --stdout | sed 's/\x1b\[[0-9;]*m//g' > docs/quickstart.md              
+                  jupyter nbconvert nbs/quickstart.ipynb --to markdown --output-dir docs/
+                  sed -i 's/\x1b\[[0-9;]*m//g' docs/quickstart.md
+
             - name: Deploy
               run: mkdocs gh-deploy --force
