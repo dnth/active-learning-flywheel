@@ -411,6 +411,13 @@ class ActiveLearner:
                                 else "",
                                 interactive=False,
                             )
+                            sample_score = gr.Textbox(
+                                label="Sample Score",
+                                value=df["score"].iloc[0]
+                                if "score" in df.columns
+                                else "",
+                                interactive=False,
+                            )
 
                     category = gr.Radio(
                         choices=self.class_names,
@@ -451,6 +458,7 @@ class ActiveLearner:
                             current_index,
                             progress,
                             pred_plot,
+                            sample_score,
                         ],
                     )
 
@@ -563,6 +571,9 @@ class ActiveLearner:
                         next_idx,
                         next_idx,
                         plot_data,
+                        df["score"].iloc[next_idx]
+                        if "score" in df.columns
+                        else "",
                     )
                 plot_data = (
                     None
@@ -589,6 +600,9 @@ class ActiveLearner:
                     current_idx,
                     current_idx,
                     plot_data,
+                    df["score"].iloc[current_idx]
+                    if "score" in df.columns
+                    else "",
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -621,6 +635,9 @@ class ActiveLearner:
                         current_idx,
                         current_idx,
                         plot_data,
+                        df["score"].iloc[current_idx]
+                        if "score" in df.columns
+                        else "",
                     )
 
                 # Save the current annotation
@@ -655,6 +672,9 @@ class ActiveLearner:
                         current_idx,
                         current_idx,
                         plot_data,
+                        df["score"].iloc[current_idx]
+                        if "score" in df.columns
+                        else "",
                     )
 
                 plot_data = (
@@ -673,7 +693,7 @@ class ActiveLearner:
                     df["pred_label"].iloc[next_idx]
                     if "pred_label" in df.columns
                     else "",
-                    df['pred_conf'].iloc[next_idx]
+                    df["pred_conf"].iloc[next_idx]
                     if "pred_conf" in df.columns
                     else "",
                     df["pred_label"].iloc[next_idx]
@@ -682,6 +702,9 @@ class ActiveLearner:
                     next_idx,
                     next_idx,
                     plot_data,
+                    df["score"].iloc[next_idx]
+                    if "score" in df.columns
+                    else "",
                 )
 
             def convert_csv_to_parquet():
@@ -707,6 +730,7 @@ class ActiveLearner:
                     current_index,
                     progress,
                     pred_plot,
+                    sample_score,
                 ],
             )
 
@@ -722,6 +746,7 @@ class ActiveLearner:
                     current_index,
                     progress,
                     pred_plot,
+                    sample_score,
                 ],
             )
 
@@ -737,6 +762,7 @@ class ActiveLearner:
                     current_index,
                     progress,
                     pred_plot,
+                    sample_score,
                 ],
             )
 
