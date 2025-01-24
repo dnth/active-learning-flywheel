@@ -373,7 +373,7 @@ class ActiveLearner:
                             type="filepath",
                             label="Image",
                             value=filepaths[0],
-                            height=500,
+                            height=510,
                         )
 
                         # Add bar plot with top 5 predictions
@@ -396,23 +396,25 @@ class ActiveLearner:
                             filename = gr.Textbox(
                                 label="Filename", value=filepaths[0], interactive=False
                             )
+                            with gr.Row():
+                                pred_label = gr.Textbox(
+                                    label="Predicted Label",
+                                    value=df["pred_label"].iloc[0]
+                                    if "pred_label" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
 
-                            pred_label = gr.Textbox(
-                                label="Predicted Label",
-                                value=df["pred_label"].iloc[0]
-                                if "pred_label" in df.columns
-                                else "",
-                                interactive=False,
-                            )
-                            pred_conf = gr.Textbox(
-                                label="Confidence",
-                                value=df["pred_conf"].iloc[0]
-                                if "pred_conf" in df.columns
-                                else "",
-                                interactive=False,
-                            )
+                                pred_conf = gr.Textbox(
+                                    label="Confidence",
+                                    value=df["pred_conf"].iloc[0]
+                                    if "pred_conf" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
+
                             sample_score = gr.Textbox(
-                                label="Sample Score",
+                                label="Sample Score [0-1] - Indicates how informative the sample is. Higher means more informative.",
                                 value=df["score"].iloc[0]
                                 if "score" in df.columns
                                 else "",
@@ -571,9 +573,7 @@ class ActiveLearner:
                         next_idx,
                         next_idx,
                         plot_data,
-                        df["score"].iloc[next_idx]
-                        if "score" in df.columns
-                        else "",
+                        df["score"].iloc[next_idx] if "score" in df.columns else "",
                     )
                 plot_data = (
                     None
@@ -600,9 +600,7 @@ class ActiveLearner:
                     current_idx,
                     current_idx,
                     plot_data,
-                    df["score"].iloc[current_idx]
-                    if "score" in df.columns
-                    else "",
+                    df["score"].iloc[current_idx] if "score" in df.columns else "",
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -635,9 +633,7 @@ class ActiveLearner:
                         current_idx,
                         current_idx,
                         plot_data,
-                        df["score"].iloc[current_idx]
-                        if "score" in df.columns
-                        else "",
+                        df["score"].iloc[current_idx] if "score" in df.columns else "",
                     )
 
                 # Save the current annotation
@@ -672,9 +668,7 @@ class ActiveLearner:
                         current_idx,
                         current_idx,
                         plot_data,
-                        df["score"].iloc[current_idx]
-                        if "score" in df.columns
-                        else "",
+                        df["score"].iloc[current_idx] if "score" in df.columns else "",
                     )
 
                 plot_data = (
@@ -693,18 +687,14 @@ class ActiveLearner:
                     df["pred_label"].iloc[next_idx]
                     if "pred_label" in df.columns
                     else "",
-                    df["pred_conf"].iloc[next_idx]
-                    if "pred_conf" in df.columns
-                    else "",
+                    df["pred_conf"].iloc[next_idx] if "pred_conf" in df.columns else "",
                     df["pred_label"].iloc[next_idx]
                     if "pred_label" in df.columns
                     else None,
                     next_idx,
                     next_idx,
                     plot_data,
-                    df["score"].iloc[next_idx]
-                    if "score" in df.columns
-                    else "",
+                    df["score"].iloc[next_idx] if "score" in df.columns else "",
                 )
 
             def convert_csv_to_parquet():
