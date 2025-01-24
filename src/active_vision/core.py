@@ -3,6 +3,7 @@ from loguru import logger
 from fastai.vision.all import *
 import torch
 import numpy as np
+import bisect
 
 import warnings
 from typing import Callable
@@ -56,7 +57,6 @@ class ActiveLearner:
         learner_path: str = None,
     ):
         logger.info(f"Loading dataset from {filepath_col} and {label_col}")
-        self.train_set = df.copy()
 
         logger.info("Creating dataloaders")
         self.dls = ImageDataLoaders.from_df(
@@ -85,6 +85,8 @@ class ActiveLearner:
                 self.dls, self.model, metrics=accuracy
             ).to_fp16()
 
+        self.train_set = self.learn.dls.train_ds.items
+        self.valid_set = self.learn.dls.valid_ds.items
         self.class_names = self.dls.vocab
         self.num_classes = self.dls.c
         logger.info("Done. Ready to train.")
@@ -235,25 +237,21 @@ class ActiveLearner:
             logger.info(f"Using entropy strategy to get top {num_samples} samples")
 
             # Calculate uncertainty score as entropy of the prediction
-            df.loc[:, "score"] = df["probs"].apply(
-                lambda x: -np.sum(x * np.log2(x))
-            )
+            df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
 
             # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
-            df.loc[:, "score"] = df["score"] / np.log2(
-                self.num_classes
-            )
+            df.loc[:, "score"] = df["score"] / np.log2(self.num_classes)
 
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        df = df[
-            ["filepath", "pred_label", "pred_conf", "score", "probs"]
-        ]
+        df = df[["filepath", "pred_label", "pred_conf", "score", "probs"]]
         return df.sort_values(by="score", ascending=False).head(num_samples)
 
-    def sample_diverse(self, df: pd.DataFrame, num_samples: int):
+    def sample_diverse(
+        self, df: pd.DataFrame, num_samples: int, strategy: str = "model-based-outlier"
+    ):
         """
         Sample top `num_samples` diverse samples. Returns a df with filepaths and predicted labels, and confidence scores.
 
@@ -262,8 +260,59 @@ class ActiveLearner:
         - cluster-based: Get top `num_samples` samples with the highest distance to the nearest neighbor.
         - representative: Get top `num_samples` samples with the highest distance to the centroid of the training set.
         """
-        logger.error("Diverse sampling strategy not implemented")
-        raise NotImplementedError("Diverse sampling strategy not implemented")
+        # Remove samples that is already in the training set
+        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+
+        if strategy == "model-based-outlier":
+            logger.info(
+                f"Using model-based outlier strategy to get top {num_samples} samples"
+            )
+
+            # 1. Get the activations for all items in the validation set.
+            valid_set_preds = self.predict(self.valid_set["filepath"].tolist())
+
+            # Get logits for each class
+            class_logits = {
+                f"class_{i}_logits": valid_set_preds["logits"]
+                .apply(lambda x: x[i])
+                .tolist()
+                for i in range(self.num_classes)
+            }
+
+            # Sort the logits for each class from highest to lowest
+            for class_idx, logits in class_logits.items():
+                class_logits[class_idx] = sorted(logits, reverse=True)
+
+            # Get the logits for the unlabeled set
+            unlabeled_set_preds = self.predict(df["filepath"].tolist())
+
+            # For each element in the unlabeled set logits, compare it to the validation set ranked logits and get the position in the ranked logits
+            unlabeled_set_logits = []
+            for idx, row in unlabeled_set_preds.iterrows():
+                logits = row["logits"]
+                # For each class, find where this sample's logit would rank in the validation set
+                ranks = []
+                for class_idx in range(self.num_classes):
+                    class_logit = logits[class_idx]
+                    ranked_logits = class_logits[f"class_{class_idx}_logits"]
+                    # Find position where this logit would be inserted to maintain sorted order
+                    # Now using bisect_left directly since logits are sorted high to low
+                    rank = bisect.bisect_left(ranked_logits, class_logit)
+                    ranks.append(
+                        rank / len(ranked_logits)
+                    )  # Normalize rank to 0-1 range
+
+                # Average rank across all classes - lower means more outlier-like
+                avg_rank = np.mean(ranks)
+                unlabeled_set_logits.append(avg_rank)
+
+            # Add outlier scores to dataframe
+            df.loc[:, "score"] = unlabeled_set_logits
+
+            df = df[["filepath", "pred_label", "pred_conf", "score", "probs"]]
+
+            # Sort by score ascending higher rank = more outlier-like compared to the validation set
+            return df.sort_values(by="score", ascending=False).head(num_samples)
 
     def sample_random(self, df: pd.DataFrame, num_samples: int, seed: int = None):
         """
