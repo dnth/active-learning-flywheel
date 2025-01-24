@@ -52,6 +52,6 @@ docs = [
     "mkdocstrings-python-legacy",
     "pygments",
     "pymdown-extensions",
-    "mkdocs-mermaid2-plugin"
+    "mkdocs-mermaid2-plugin",
     "ansi2html"
 ]
