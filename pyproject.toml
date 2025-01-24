@@ -1,7 +1,7 @@
 [project]
 name = "active-vision"
-version = "0.2.0"
-description = "Active learning for edge vision."
+version = "0.3.0"
+description = "Active learning for computer vision."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
