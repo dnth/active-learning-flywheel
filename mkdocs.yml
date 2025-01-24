@@ -39,6 +39,7 @@ theme:
 plugins:
     - search
     - mkdocstrings
+    - mermaid2
     - git-revision-date
     - git-revision-date-localized:
           enable_creation_date: true
