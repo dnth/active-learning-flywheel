@@ -79,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#introduction" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -286,6 +291,17 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Quickstart
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -295,6 +311,50 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-the-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load the dataset
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-an-activelearner" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create an ActiveLearner
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -318,6 +378,41 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-the-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load the dataset
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-an-activelearner" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create an ActiveLearner
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -339,7 +434,120 @@
 
   <h1>Quickstart</h1>
 
-<p>How to get started with Active Vision.</p>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>This notebook will guide you through the basic steps to get started with Active Vision.</p>
+<p>By the end of this notebook, you will be able to:</p>
+<ul>
+<li>Understand the basic workflow of active learning</li>
+<li>Understand the basic components of Active Vision</li>
+<li>Understand how to use Active Vision to train a model</li>
+<li>Understand how to use Active Vision to iteratively improve your dataset</li>
+</ul>
+<p>Before we start, we need to prepare 3 sets of data:</p>
+<ul>
+<li>Initial samples: A dataset of labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.</li>
+<li>Unlabeled samples: A dataset of unlabeled images. We will continuously sample from this set using active learning strategies.</li>
+<li>Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</li>
+</ul>
+<p>We will use the Imagenette dataset as a working example in this notebook.</p>
+<h2 id="load-the-dataset">Load the dataset<a class="headerlink" href="#load-the-dataset" title="Permanent link">&para;</a></h2>
+<p><code>active-vision</code> currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: <code>filepath</code> and <code>label</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">initial_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;imagenette/initial_samples.parquet&quot;</span><span class="p">)</span>
+<span class="n">initial_samples</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/2/00710.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/2/00063.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/2/00506.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/2/00575.jpg</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/2/00136.jpg</td>
+      <td>cassette player</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Let's check the distribution of the labels.</p>
+<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>label
+cassette player     10
+tench               10
+chain saw           10
+church              10
+parachute           10
+gas pump            10
+English springer    10
+golf ball           10
+garbage truck       10
+French horn         10
+Name: count, dtype: int64
+</code></pre></div>
+<h2 id="create-an-activelearner">Create an ActiveLearner<a class="headerlink" href="#create-an-activelearner" title="Permanent link">&para;</a></h2>
+<p>Now that we have an initial dataset, we can load it into an <code>ActiveLearner</code> object with a model.</p>
+<p>Any fastai and timm models are supported. For simplicity, we will use a <code>resnet18</code> model.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">active_vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastai.vision.models.all</span><span class="w"> </span><span class="kn">import</span> <span class="n">resnet18</span>
+
+<span class="n">al</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span><span class="n">resnet18</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>2025-01-24 23:19:24.759 | INFO     | active_vision.core:load_model:41 - Loading fastai model resnet18
+</code></pre></div>
+<p>We can load the initial samples into the <code>ActiveLearner</code> object.</p>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">initial_samples</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>2025-01-24 23:19:24.764 | INFO     | active_vision.core:load_dataset:59 - Loading dataset from filepath and label
+2025-01-24 23:19:24.766 | INFO     | active_vision.core:load_dataset:61 - Creating dataloaders
+2025-01-24 23:19:24.953 | INFO     | active_vision.core:load_dataset:83 - Creating learner
+2025-01-24 23:19:25.081 | INFO     | active_vision.core:load_dataset:92 - Done. Ready to train.
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
+</code></pre></div>
+<p><img alt="png" src="quickstart_files/quickstart_9_0.png" /></p>
+<div class="highlight"><pre><span></span><code>
+</code></pre></div>
 
 
 
