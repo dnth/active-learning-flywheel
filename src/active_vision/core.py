@@ -165,7 +165,7 @@ class ActiveLearner:
                 "pred_conf": torch.max(F.softmax(logits, dim=1), dim=1)[0].numpy(),
                 "probs": F.softmax(logits, dim=1).numpy().tolist(),
                 "logits": logits.numpy().tolist(),
-                "features": features.numpy().tolist(),
+                "embeddings": features.numpy().tolist(),
             }
         )
 
