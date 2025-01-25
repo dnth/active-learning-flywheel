@@ -137,7 +137,16 @@ class ActiveLearner:
         Run inference on an unlabeled dataset. Returns a df with filepaths and predicted labels, and confidence scores.
         """
         logger.info(f"Running inference on {len(filepaths)} samples")
+
         test_dl = self.dls.test_dl(filepaths, bs=batch_size)
+
+        all_features = []
+
+        def hook_fn(module, input, output):
+            all_features.append(output.detach().cpu())  
+
+        penultimate_layer = self.learn.model[1][4]
+        handle = penultimate_layer.register_forward_hook(hook_fn)
 
         def identity(x):
             return x
@@ -146,6 +155,9 @@ class ActiveLearner:
             dl=test_dl, with_decoded=True, act=identity
         )
 
+        handle.remove()
+        features = torch.cat(all_features)
+
         self.pred_df = pd.DataFrame(
             {
                 "filepath": filepaths,
@@ -153,6 +165,7 @@ class ActiveLearner:
                 "pred_conf": torch.max(F.softmax(logits, dim=1), dim=1)[0].numpy(),
                 "probs": F.softmax(logits, dim=1).numpy().tolist(),
                 "logits": logits.numpy().tolist(),
+                "features": features.numpy().tolist(),
             }
         )
 
