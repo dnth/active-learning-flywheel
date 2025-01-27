@@ -3,6 +3,7 @@ models/
 *.pkl
 *.pth
 *.pkl
+*.parquet
 
 # Data
 data/
