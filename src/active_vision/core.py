@@ -1,12 +1,24 @@
-import pandas as pd
-from loguru import logger
-from fastai.vision.all import *
-import torch
-import numpy as np
 import bisect
-
 import warnings
 from typing import Callable
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn.functional as F
+from fastai.vision.all import (
+    ImageDataLoaders,
+    Resize,
+    ShowGraphCallback,
+    accuracy,
+    load_learner,
+    minimum,
+    slide,
+    steep,
+    valley,
+    vision_learner,
+)
+from loguru import logger
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -33,17 +45,59 @@ class ActiveLearner:
             eval_df (pd.DataFrame): Predictions on evaluation data
     """
 
-    def __init__(self, model_name: str | Callable):
-        self.model = self.load_model(model_name)
+    def __init__(self, name: str):
+        self.name = name
+        self.model = None
 
-    def load_model(self, model_name: str | Callable):
-        if isinstance(model_name, Callable):
-            logger.info(f"Loading fastai model {model_name.__name__}")
-            return model_name
+    def load_model(
+        self, model: str | Callable, pretrained: bool = True, device: str = None
+    ):
+        self.model = model
+        self.device = self._detect_optimal_device() if device is None else device
+        self.pretrained = pretrained
 
-        if isinstance(model_name, str):
-            logger.info(f"Loading timm model {model_name}")
-            return model_name
+        if isinstance(model, Callable):
+            logger.info(
+                f"Loading a {'pretrained ' if pretrained else 'non-pretrained '}fastai model `{model.__name__}` on `{self.device}`"
+            )
+
+        if isinstance(model, str):
+            logger.info(
+                f"Loading a {'pretrained ' if pretrained else 'non-pretrained '}timm model `{model}` on `{self.device}`"
+            )
+
+    def _detect_optimal_device(self):
+        """Determine the appropriate device and return device type."""
+        cuda_available = torch.cuda.is_available()
+        mps_available = (
+            hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+        )
+
+        device = "cpu"
+        if cuda_available:
+            device = "cuda"
+            logger.info("CUDA GPU detected - will load model on GPU")
+        elif mps_available:
+            device = "mps"
+            logger.info("Apple Silicon GPU detected - will load model on MPS")
+        else:
+            logger.info("No GPU detected - will load model on CPU")
+
+        return device
+
+    def _optimize_learner(self, device):
+        """Apply optimization settings to learner based on device."""
+        if device != "cpu":
+            self.learn.to_fp16()
+            logger.info("Enabled mixed precision training")
+
+    def _finalize_setup(self):
+        """Set common attributes after learner creation."""
+        self.train_set = self.learn.dls.train_ds.items
+        self.valid_set = self.learn.dls.valid_ds.items
+        self.class_names = self.dls.vocab
+        self.num_classes = self.dls.c
+        logger.info("Done. Ready to train.")
 
     def load_dataset(
         self,
@@ -56,9 +110,8 @@ class ActiveLearner:
         batch_tfms: Callable = None,
         learner_path: str = None,
     ):
-        logger.info(f"Loading dataset from {filepath_col} and {label_col}")
+        logger.info(f"Loading dataset from `{filepath_col}` and `{label_col}` columns")
 
-        logger.info("Creating dataloaders")
         self.dls = ImageDataLoaders.from_df(
             df,
             path=".",
@@ -70,26 +123,32 @@ class ActiveLearner:
             batch_tfms=batch_tfms,
         )
 
-        if learner_path:
-            logger.info(f"Loading learner from {learner_path}")
-            gpu_available = torch.cuda.is_available()
-            if gpu_available:
-                logger.info(f"Loading learner on GPU.")
+        if self.model is None:
+            logger.info(
+                "No model loaded, using a pretrained timm `resnet18`. Load a model by calling `load_model(model_name)`"
+            )
+            self.load_model("resnet18")
+
+        try:
+            if learner_path:
+                logger.info(f"Loading learner from {learner_path}")
+                self.learn = load_learner(learner_path, cpu=(self.device == "cpu"))
+                self.learn.dls = self.dls
             else:
-                logger.info(f"Loading learner on CPU.")
+                logger.info("Creating new learner")
+                self.learn = vision_learner(
+                    self.dls, self.model, metrics=accuracy, pretrained=self.pretrained
+                )
 
-            self.learn = load_learner(learner_path, cpu=not gpu_available)
-        else:
-            logger.info("Creating learner")
-            self.learn = vision_learner(
-                self.dls, self.model, metrics=accuracy
-            ).to_fp16()
+            self._optimize_learner(self.device)
 
-        self.train_set = self.learn.dls.train_ds.items
-        self.valid_set = self.learn.dls.valid_ds.items
-        self.class_names = self.dls.vocab
-        self.num_classes = self.dls.c
-        logger.info("Done. Ready to train.")
+        except Exception as e:
+            action = "load" if learner_path else "create"
+            logger.error(f"Failed to {action} learner")
+            logger.exception(e)
+            raise RuntimeError(f"Failed to {action} learner: {str(e)}")
+
+        self._finalize_setup()
 
     def show_batch(
         self,
@@ -143,7 +202,7 @@ class ActiveLearner:
         all_features = []
 
         def hook_fn(module, input, output):
-            all_features.append(output.detach().cpu())  
+            all_features.append(output.detach().cpu())
 
         penultimate_layer = self.learn.model[1][4]
         handle = penultimate_layer.register_forward_hook(hook_fn)
