@@ -3,12 +3,11 @@ models/
 *.pkl
 *.pth
 *.pkl
-*.parquet
 
 # Data
 data/
-uncertain.parquet
-uncertain.csv
+*.parquet
+*.csv
 
 private/
 
