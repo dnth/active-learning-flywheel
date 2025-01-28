@@ -1,4 +1,5 @@
 import bisect
+import os
 import warnings
 from typing import Callable
 
@@ -7,6 +8,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from fastai.vision.all import (
+    CrossEntropyLossFlat,
     ImageDataLoaders,
     Resize,
     ShowGraphCallback,
@@ -17,12 +19,11 @@ from fastai.vision.all import (
     steep,
     valley,
     vision_learner,
-    CrossEntropyLossFlat
-
 )
 from loguru import logger
 
 warnings.filterwarnings("ignore", category=FutureWarning)
+pd.set_option("display.max_colwidth", 50)
 
 
 class ActiveLearner:
@@ -785,6 +786,9 @@ class ActiveLearner:
                     df = df.drop_duplicates(subset=["filepath"], keep="last")
                     df.to_parquet(f"{output_filename}.parquet")
                     gr.Info(f"Annotation saved to {output_filename}.parquet")
+
+                    # remove csv file
+                    os.remove(f"{output_filename}.csv")
                 except Exception as e:
                     logger.error(e)
                     return
@@ -841,19 +845,17 @@ class ActiveLearner:
 
         demo.launch(height=1000)
 
-    def add_to_train_set(self, df: pd.DataFrame, output_filename: str):
+    def add_to_dataset(self, labeled_df: pd.DataFrame, output_filename: str):
         """
-        Add samples to the training set.
+        Add samples to the dataset used for training - include train and validation sets.
         """
-        new_train_set = df.copy()
+        labeled_df = labeled_df.copy()
 
-        logger.info(f"Adding {len(new_train_set)} samples to training set")
-        self.train_set = pd.concat([self.train_set, new_train_set])
+        logger.info(f"Adding {len(labeled_df)} samples to dataset")
+        self.dataset = pd.concat([self.train_set, self.valid_set, labeled_df])
 
-        self.train_set = self.train_set.drop_duplicates(
-            subset=["filepath"], keep="last"
-        )
-        self.train_set.reset_index(drop=True, inplace=True)
+        self.dataset = self.dataset.drop_duplicates(subset=["filepath"], keep="last")
+        self.dataset.reset_index(drop=True, inplace=True)
 
-        self.train_set.to_parquet(f"{output_filename}.parquet")
-        logger.info(f"Saved training set to {output_filename}.parquet")
+        self.dataset.to_parquet(f"{output_filename}.parquet")
+        logger.info(f"Saved dataset to {output_filename}.parquet")
