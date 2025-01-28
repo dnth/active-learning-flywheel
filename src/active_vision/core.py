@@ -117,6 +117,14 @@ class ActiveLearner:
         learner_path: str = None,
     ):
         logger.info(f"Loading dataset from `{filepath_col}` and `{label_col}` columns")
+        self.image_size = image_size
+        self.batch_size = batch_size
+        self.seed = seed
+        self.eval_accuracy = None
+        self.train_accuracy = None
+        self.valid_accuracy = None
+
+        self.dataset = df
 
         self.dls = ImageDataLoaders.from_df(
             df,
@@ -262,6 +270,7 @@ class ActiveLearner:
         )
 
         accuracy = float((self.eval_df["label"] == self.eval_df["pred_label"]).mean())
+        self.eval_accuracy = accuracy
         logger.info(f"Accuracy: {accuracy:.2%}")
         return accuracy
 
@@ -279,7 +288,7 @@ class ActiveLearner:
         """
 
         # Remove samples that is already in the training set
-        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+        df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
 
         if strategy == "least-confidence":
             logger.info(
@@ -348,7 +357,7 @@ class ActiveLearner:
 
         """
         # Remove samples that is already in the training set
-        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+        df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
 
         if strategy == "model-based-outlier":
             logger.info(
@@ -409,11 +418,40 @@ class ActiveLearner:
         """
 
         logger.info(f"Sampling {num_samples} random samples")
+        df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
+
         if seed is not None:
             logger.info(f"Using seed: {seed}")
         return df.sample(n=num_samples, random_state=seed)
 
-    def label(self, df: pd.DataFrame, output_filename: str = "labeled"):
+    def summary(self, filename: str, show: bool = True):
+        results_df = pd.DataFrame(
+            {
+                "name": [self.name],
+                "accuracy": [self.eval_accuracy],
+                "train_set_size": [len(self.train_set)],
+                "valid_set_size": [len(self.valid_set)],
+                "dataset_size": [len(self.train_set) + len(self.valid_set)],
+                "num_classes": [self.num_classes],
+                "model": [self.model],
+                "pretrained": [self.pretrained],
+                "loss_fn": [str(self.loss_fn)],
+                "device": [self.device],
+                "seed": [self.seed],
+                "batch_size": [self.batch_size],
+                "image_size": [self.image_size],
+            }
+        )
+        if not filename.endswith(".parquet"):
+            filename = f"{filename}.parquet"
+        results_df.to_parquet(filename)
+        logger.info(f"Saved results to {filename}")
+        if show:
+            return results_df
+        else:
+            return None
+
+    def label(self, df: pd.DataFrame, output_filename: str):
         """
         Launch a labeling interface for the user to label the samples.
         Input is a df with filepaths listing the files to be labeled. Output is a df with filepaths and labels.
@@ -781,14 +819,18 @@ class ActiveLearner:
 
             def convert_csv_to_parquet():
                 try:
-                    df = pd.read_csv(f"{output_filename}.csv", header=None)
+                    csv_path = f"{output_filename}.csv"
+                    parquet_path = f"{output_filename}.parquet" if not output_filename.endswith(".parquet") else output_filename
+                    
+                    df = pd.read_csv(csv_path, header=None)
                     df.columns = ["filepath", "label"]
                     df = df.drop_duplicates(subset=["filepath"], keep="last")
-                    df.to_parquet(f"{output_filename}.parquet")
-                    gr.Info(f"Annotation saved to {output_filename}.parquet")
+                    df.reset_index(drop=True, inplace=True)
+                    df.to_parquet(parquet_path)
+                    gr.Info(f"Annotation saved to {parquet_path}")
 
                     # remove csv file
-                    os.remove(f"{output_filename}.csv")
+                    os.remove(csv_path)
                 except Exception as e:
                     logger.error(e)
                     return
@@ -852,8 +894,7 @@ class ActiveLearner:
         labeled_df = labeled_df.copy()
 
         logger.info(f"Adding {len(labeled_df)} samples to dataset")
-        self.dataset = pd.concat([self.train_set, self.valid_set, labeled_df])
-
+        self.dataset = pd.concat([self.dataset, labeled_df])
         self.dataset = self.dataset.drop_duplicates(subset=["filepath"], keep="last")
         self.dataset.reset_index(drop=True, inplace=True)
 
