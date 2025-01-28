@@ -17,6 +17,8 @@ from fastai.vision.all import (
     steep,
     valley,
     vision_learner,
+    CrossEntropyLossFlat
+
 )
 from loguru import logger
 
@@ -48,6 +50,8 @@ class ActiveLearner:
     def __init__(self, name: str):
         self.name = name
         self.model = None
+        self.callbacks = [ShowGraphCallback()]
+        self.loss_fn = CrossEntropyLossFlat()
 
     def load_model(
         self, model: str | Callable, pretrained: bool = True, device: str = None
@@ -108,6 +112,7 @@ class ActiveLearner:
         batch_size: int = 16,
         image_size: int = 224,
         batch_tfms: Callable = None,
+        seed: int = None,
         learner_path: str = None,
     ):
         logger.info(f"Loading dataset from `{filepath_col}` and `{label_col}` columns")
@@ -115,6 +120,7 @@ class ActiveLearner:
         self.dls = ImageDataLoaders.from_df(
             df,
             path=".",
+            seed=seed,
             valid_pct=valid_pct,
             fn_col=filepath_col,
             label_col=label_col,
@@ -137,7 +143,12 @@ class ActiveLearner:
             else:
                 logger.info("Creating new learner")
                 self.learn = vision_learner(
-                    self.dls, self.model, metrics=accuracy, pretrained=self.pretrained
+                    self.dls,
+                    self.model,
+                    metrics=accuracy,
+                    pretrained=self.pretrained,
+                    cbs=self.callbacks,
+                    loss_func=self.loss_fn,
                 )
 
             self._optimize_learner(self.device)
@@ -187,9 +198,7 @@ class ActiveLearner:
         logger.info(f"Training head for {head_tuning_epochs} epochs")
         logger.info(f"Training model end-to-end for {epochs} epochs")
         logger.info(f"Learning rate: {lr} with one-cycle learning rate scheduler")
-        self.learn.fine_tune(
-            epochs, lr, freeze_epochs=head_tuning_epochs, cbs=[ShowGraphCallback()]
-        )
+        self.learn.fine_tune(epochs, lr, freeze_epochs=head_tuning_epochs)
 
     def predict(self, filepaths: list[str], batch_size: int = 16):
         """
