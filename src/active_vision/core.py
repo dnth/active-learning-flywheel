@@ -1053,5 +1053,7 @@ class ActiveLearner:
         self.dataset = self.dataset.drop_duplicates(subset=["filepath"], keep="last")
         self.dataset.reset_index(drop=True, inplace=True)
 
-        self.dataset.to_parquet(f"{output_filename}.parquet")
-        logger.info(f"Saved dataset to {output_filename}.parquet")
+        if not output_filename.endswith(".parquet"):
+            output_filename = f"{output_filename}.parquet"
+        self.dataset.to_parquet(output_filename)
+        logger.info(f"Saved dataset to {output_filename}")
