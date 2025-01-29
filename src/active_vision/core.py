@@ -247,6 +247,9 @@ class ActiveLearner:
         )
 
         self.pred_df["pred_conf"] = self.pred_df["pred_conf"].round(4)
+        self.pred_df["probs"] = self.pred_df["probs"].apply(lambda x: [round(p, 4) for p in x])
+        self.pred_df["logits"] = self.pred_df["logits"].apply(lambda x: [round(l, 4) for l in x])
+        self.pred_df["embeddings"] = self.pred_df["embeddings"].apply(lambda x: [round(e, 4) for e in x])
 
         return self.pred_df
 
@@ -541,7 +544,7 @@ class ActiveLearner:
                                 )
 
                             sample_score = gr.Textbox(
-                                label="Selecion Score [0-1]",
+                                label="Selection Score [0-1] - Active learning selection score. Higher = more valuable to be labeled.",
                                 value=format_for_display(df["score"].iloc[0])
                                 if "score" in df.columns
                                 else "",
