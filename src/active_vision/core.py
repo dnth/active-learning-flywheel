@@ -339,8 +339,8 @@ class ActiveLearner:
 
         df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
 
-        df["score"] = df["score"].map("{:.4f}".format)
-        df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+        df["score"] = df["score"].round(4)
+        df["pred_conf"] = df["pred_conf"].round(4)
 
         return df.sort_values(by="score", ascending=False).head(num_samples)
 
@@ -406,8 +406,8 @@ class ActiveLearner:
 
             df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
 
-            df["score"] = df["score"].map("{:.4f}".format)
-            df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+            df["score"] = df["score"].round(4)
+            df["pred_conf"] = df["pred_conf"].round(4)
 
             # Sort by score ascending higher rank = more outlier-like compared to the validation set
             return df.sort_values(by="score", ascending=False).head(num_samples)
@@ -525,19 +525,20 @@ class ActiveLearner:
                                     interactive=False,
                                 )
 
+                                # For UI display, we can format as strings
+                                def format_for_display(value):
+                                    return f"{value:.4f}" if pd.notnull(value) else ""
+                                
+                                # Use formatted values only for display
                                 pred_conf = gr.Textbox(
                                     label="Confidence",
-                                    value=df["pred_conf"].iloc[0]
-                                    if "pred_conf" in df.columns
-                                    else "",
+                                    value=format_for_display(df["pred_conf"].iloc[0]) if "pred_conf" in df.columns else "",
                                     interactive=False,
                                 )
 
                             sample_score = gr.Textbox(
-                                label="Sample Score [0-1] - Indicates how informative the sample is. Higher means more informative.",
-                                value=df["score"].iloc[0]
-                                if "score" in df.columns
-                                else "",
+                                label="Sample Score [0-1]",
+                                value=format_for_display(df["score"].iloc[0]) if "score" in df.columns else "",
                                 interactive=False,
                             )
 
