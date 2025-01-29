@@ -619,6 +619,10 @@ class ActiveLearner:
 
                         # Add bar plot with top 5 predictions
                         with gr.Column():
+                            filename = gr.Textbox(
+                                label="Filename", value=filepaths[0], interactive=False
+                            )
+
                             pred_plot = gr.BarPlot(
                                 x="probability",
                                 y="class",
@@ -634,9 +638,6 @@ class ActiveLearner:
                                 ).nlargest(5, "probability"),
                             )
 
-                            filename = gr.Textbox(
-                                label="Filename", value=filepaths[0], interactive=False
-                            )
                             with gr.Row():
                                 pred_label = gr.Textbox(
                                     label="Predicted Label",
