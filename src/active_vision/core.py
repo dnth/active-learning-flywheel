@@ -537,7 +537,7 @@ class ActiveLearner:
                                 )
 
                             sample_score = gr.Textbox(
-                                label="Sample Score [0-1]",
+                                label="Selecion Score [0-1]",
                                 value=format_for_display(df["score"].iloc[0]) if "score" in df.columns else "",
                                 interactive=False,
                             )
