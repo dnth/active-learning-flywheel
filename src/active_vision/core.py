@@ -247,9 +247,15 @@ class ActiveLearner:
         )
 
         self.pred_df["pred_conf"] = self.pred_df["pred_conf"].round(4)
-        self.pred_df["probs"] = self.pred_df["probs"].apply(lambda x: [round(p, 4) for p in x])
-        self.pred_df["logits"] = self.pred_df["logits"].apply(lambda x: [round(l, 4) for l in x])
-        self.pred_df["embeddings"] = self.pred_df["embeddings"].apply(lambda x: [round(e, 4) for e in x])
+        self.pred_df["probs"] = self.pred_df["probs"].apply(
+            lambda x: [round(p, 4) for p in x]
+        )
+        self.pred_df["logits"] = self.pred_df["logits"].apply(
+            lambda x: [round(l, 4) for l in x]
+        )
+        self.pred_df["embeddings"] = self.pred_df["embeddings"].apply(
+            lambda x: [round(e, 4) for e in x]
+        )
 
         return self.pred_df
 
@@ -302,6 +308,7 @@ class ActiveLearner:
             df.loc[:, "score"] = 1 - (df["pred_conf"]) / (
                 self.num_classes - (self.num_classes - 1)
             )
+            df.loc[:, "strategy"] = "least-confidence"
 
         elif strategy == "margin-of-confidence":
             logger.info(
@@ -315,6 +322,7 @@ class ActiveLearner:
             df.loc[:, "score"] = df["probs"].apply(
                 lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
             )
+            df.loc[:, "strategy"] = "margin-of-confidence"
 
         elif strategy == "ratio-of-confidence":
             logger.info(
@@ -328,6 +336,7 @@ class ActiveLearner:
             df.loc[:, "score"] = df["probs"].apply(
                 lambda x: np.sort(x)[-2] / np.sort(x)[-1]
             )
+            df.loc[:, "strategy"] = "ratio-of-confidence"
 
         elif strategy == "entropy":
             logger.info(f"Using entropy strategy to get top {num_samples} samples")
@@ -337,15 +346,26 @@ class ActiveLearner:
 
             # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
             df.loc[:, "score"] = df["score"] / np.log2(self.num_classes)
+            df.loc[:, "strategy"] = "entropy"
 
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
+        df = df[
+            [
+                "filepath",
+                "strategy",
+                "score",
+                "pred_label",
+                "pred_conf",
+                "probs",
+                "logits",
+                "embeddings",
+            ]
+        ]
 
         df["score"] = df["score"].round(4)
-        df["pred_conf"] = df["pred_conf"].round(4)
 
         return df.sort_values(by="score", ascending=False).head(num_samples)
 
@@ -382,7 +402,8 @@ class ActiveLearner:
             ]
 
             # Get the logits for the unlabeled set
-            unlabeled_set_preds = self.predict(df["filepath"].tolist())
+            # unlabeled_set_preds = self.predict(df["filepath"].tolist())
+            unlabeled_set_preds = df
 
             # For each element in the unlabeled set logits, compare it to the validation set ranked logits and get the position in the ranked logits
             unlabeled_set_logits = []
@@ -408,14 +429,28 @@ class ActiveLearner:
 
             # Add outlier scores to dataframe
             df.loc[:, "score"] = unlabeled_set_logits
-
-            df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
+            df.loc[:, "strategy"] = "model-based-outlier"
+            df = df[
+                [
+                    "filepath",
+                    "strategy",
+                    "score",
+                    "pred_label",
+                    "pred_conf",
+                    "probs",
+                    "logits",
+                    "embeddings",
+                ]
+            ]
 
             df["score"] = df["score"].round(4)
-            df["pred_conf"] = df["pred_conf"].round(4)
 
             # Sort by score ascending higher rank = more outlier-like compared to the validation set
             return df.sort_values(by="score", ascending=False).head(num_samples)
+
+        else:
+            logger.error(f"Unknown strategy: {strategy}")
+            raise ValueError(f"Unknown strategy: {strategy}")
 
     def sample_random(self, df: pd.DataFrame, num_samples: int, seed: int = None):
         """
@@ -424,10 +459,91 @@ class ActiveLearner:
 
         logger.info(f"Sampling {num_samples} random samples")
         df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
+        df["strategy"] = "random"
+        df["score"] = 0.0
 
         if seed is not None:
             logger.info(f"Using seed: {seed}")
         return df.sample(n=num_samples, random_state=seed)
+
+    def sample_combination(self, df: pd.DataFrame, num_samples: int, combination: dict):
+        """
+        Sample samples based on a combination of strategies.
+
+        Args:
+            df: DataFrame with filepaths and predicted labels, and confidence scores
+            num_samples: Total number of samples to select
+            combination: Dictionary mapping strategy names to proportions, e.g.:
+                {
+                    "least-confidence": 0.4,
+                    "model-based-outlier": 0.6
+                }
+
+                Supported strategies:
+                Uncertainty-based:
+                    - least-confidence
+                    - margin-of-confidence
+                    - ratio-of-confidence
+                    - entropy
+                Diversity-based:
+                    - model-based-outlier
+                    - cluster-based
+                    - representative
+                Other:
+                    - random
+
+        Returns:
+            DataFrame containing the combined samples
+        """
+        logger.info(f"Using combination sampling to get {num_samples} samples")
+
+        # Validate total proportions sum to 1
+        if not np.isclose(sum(combination.values()), 1.0):
+            raise ValueError(
+                f"Proportions must sum to 1, got {sum(combination.values())}"
+            )
+
+        # Calculate samples per strategy and handle rounding
+        samples_per_strategy = {
+            strategy: int(proportion * num_samples)
+            for strategy, proportion in combination.items()
+        }
+
+        # Add any remaining samples to the first strategy
+        remaining = num_samples - sum(samples_per_strategy.values())
+        if remaining > 0:
+            first_strategy = list(combination.keys())[0]
+            samples_per_strategy[first_strategy] += remaining
+
+        # Get samples for each strategy
+        sampled_dfs = []
+        for strategy, n_samples in samples_per_strategy.items():
+            if n_samples == 0:
+                continue
+
+            if strategy in [
+                "least-confidence",
+                "margin-of-confidence",
+                "ratio-of-confidence",
+                "entropy",
+            ]:
+                strategy_df = self.sample_uncertain(
+                    df=df, num_samples=n_samples, strategy=strategy
+                )
+            elif strategy in ["model-based-outlier", "cluster-based", "representative"]:
+                strategy_df = self.sample_diverse(
+                    df=df, num_samples=n_samples, strategy=strategy
+                )
+            elif strategy == "random":
+                strategy_df = self.sample_random(df=df, num_samples=n_samples)
+            else:
+                raise ValueError(f"Unknown strategy: {strategy}")
+
+            sampled_dfs.append(strategy_df)
+            # Remove selected samples from the pool to avoid duplicates
+            df = df[~df["filepath"].isin(strategy_df["filepath"])]
+
+        return pd.concat(sampled_dfs, ignore_index=True)
 
     def summary(self, filename: str, show: bool = True):
         results_df = pd.DataFrame(
@@ -530,11 +646,9 @@ class ActiveLearner:
                                     interactive=False,
                                 )
 
-                                # For UI display, we can format as strings
                                 def format_for_display(value):
                                     return f"{value:.4f}" if pd.notnull(value) else ""
 
-                                # Use formatted values only for display
                                 pred_conf = gr.Textbox(
                                     label="Confidence",
                                     value=format_for_display(df["pred_conf"].iloc[0])
@@ -543,13 +657,22 @@ class ActiveLearner:
                                     interactive=False,
                                 )
 
-                            sample_score = gr.Textbox(
-                                label="Selection Score [0-1] - Active learning selection score. Higher = more valuable to be labeled.",
-                                value=format_for_display(df["score"].iloc[0])
-                                if "score" in df.columns
-                                else "",
-                                interactive=False,
-                            )
+                            with gr.Row():
+                                strategy = gr.Textbox(
+                                    label="Sampling Strategy",
+                                    value=df["strategy"].iloc[0]
+                                    if "strategy" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
+
+                                sample_score = gr.Textbox(
+                                    label="Score",
+                                    value=format_for_display(df["score"].iloc[0])
+                                    if "score" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
 
                     category = gr.Radio(
                         choices=self.class_names,
@@ -591,6 +714,7 @@ class ActiveLearner:
                             progress,
                             pred_plot,
                             sample_score,
+                            strategy,
                         ],
                     )
 
@@ -704,6 +828,9 @@ class ActiveLearner:
                         next_idx,
                         plot_data,
                         df["score"].iloc[next_idx] if "score" in df.columns else "",
+                        df["strategy"].iloc[next_idx]
+                        if "strategy" in df.columns
+                        else "",
                     )
                 plot_data = (
                     None
@@ -731,6 +858,9 @@ class ActiveLearner:
                     current_idx,
                     plot_data,
                     df["score"].iloc[current_idx] if "score" in df.columns else "",
+                    df["strategy"].iloc[current_idx]
+                    if "strategy" in df.columns
+                    else "",
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -764,6 +894,9 @@ class ActiveLearner:
                         current_idx,
                         plot_data,
                         df["score"].iloc[current_idx] if "score" in df.columns else "",
+                        df["strategy"].iloc[current_idx]
+                        if "strategy" in df.columns
+                        else "",
                     )
 
                 # Save the current annotation
@@ -799,6 +932,9 @@ class ActiveLearner:
                         current_idx,
                         plot_data,
                         df["score"].iloc[current_idx] if "score" in df.columns else "",
+                        df["strategy"].iloc[current_idx]
+                        if "strategy" in df.columns
+                        else "",
                     )
 
                 plot_data = (
@@ -825,6 +961,7 @@ class ActiveLearner:
                     next_idx,
                     plot_data,
                     df["score"].iloc[next_idx] if "score" in df.columns else "",
+                    df["strategy"].iloc[next_idx] if "strategy" in df.columns else "",
                 )
 
             def convert_csv_to_parquet():
@@ -862,6 +999,7 @@ class ActiveLearner:
                     progress,
                     pred_plot,
                     sample_score,
+                    strategy,
                 ],
             )
 
@@ -878,6 +1016,7 @@ class ActiveLearner:
                     progress,
                     pred_plot,
                     sample_score,
+                    strategy,
                 ],
             )
 
@@ -894,6 +1033,7 @@ class ActiveLearner:
                     progress,
                     pred_plot,
                     sample_score,
+                    strategy,
                 ],
             )
 
