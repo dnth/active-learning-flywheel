@@ -246,6 +246,8 @@ class ActiveLearner:
             }
         )
 
+        self.pred_df["pred_conf"] = self.pred_df["pred_conf"].round(4)
+
         return self.pred_df
 
     def evaluate(
@@ -528,17 +530,21 @@ class ActiveLearner:
                                 # For UI display, we can format as strings
                                 def format_for_display(value):
                                     return f"{value:.4f}" if pd.notnull(value) else ""
-                                
+
                                 # Use formatted values only for display
                                 pred_conf = gr.Textbox(
                                     label="Confidence",
-                                    value=format_for_display(df["pred_conf"].iloc[0]) if "pred_conf" in df.columns else "",
+                                    value=format_for_display(df["pred_conf"].iloc[0])
+                                    if "pred_conf" in df.columns
+                                    else "",
                                     interactive=False,
                                 )
 
                             sample_score = gr.Textbox(
                                 label="Selecion Score [0-1]",
-                                value=format_for_display(df["score"].iloc[0]) if "score" in df.columns else "",
+                                value=format_for_display(df["score"].iloc[0])
+                                if "score" in df.columns
+                                else "",
                                 interactive=False,
                             )
 
@@ -821,8 +827,12 @@ class ActiveLearner:
             def convert_csv_to_parquet():
                 try:
                     csv_path = f"{output_filename}.csv"
-                    parquet_path = f"{output_filename}.parquet" if not output_filename.endswith(".parquet") else output_filename
-                    
+                    parquet_path = (
+                        f"{output_filename}.parquet"
+                        if not output_filename.endswith(".parquet")
+                        else output_filename
+                    )
+
                     df = pd.read_csv(csv_path, header=None)
                     df.columns = ["filepath", "label"]
                     df = df.drop_duplicates(subset=["filepath"], keep="last")
