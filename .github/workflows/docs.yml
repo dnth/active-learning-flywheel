@@ -33,5 +33,8 @@ jobs:
                   jupyter nbconvert nbs/imagenette/preparing_data.ipynb --to markdown --output-dir docs/
                   sed -i 's/\x1b\[[0-9;]*m//g' docs/preparing_data.md
 
+                  jupyter nbconvert nbs/imagenette/active_learning.ipynb --to markdown --output-dir docs/
+                  sed -i 's/\x1b\[[0-9;]*m//g' docs/active_learning.md
+
             - name: Deploy
               run: mkdocs gh-deploy --force
