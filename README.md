@@ -105,7 +105,7 @@ al.summary()
 # Get predictions from an *unlabeled* set
 pred_df = al.predict(filepaths)
 
-# Sample low confidence predictions from unlabeled set
+# Sample images using a combination of active learning strategies
 samples = al.sample_combination(
     pred_df,
     num_samples=50,
