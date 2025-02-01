@@ -6,10 +6,12 @@ models/
 
 # Data
 data/
-uncertain.parquet
-uncertain.csv
+*.parquet
+*.csv
 
 private/
+
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

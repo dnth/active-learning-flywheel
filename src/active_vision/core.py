@@ -1,14 +1,29 @@
-import pandas as pd
-from loguru import logger
-from fastai.vision.all import *
-import torch
-import numpy as np
 import bisect
-
+import os
 import warnings
 from typing import Callable
 
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn.functional as F
+from fastai.vision.all import (
+    CrossEntropyLossFlat,
+    ImageDataLoaders,
+    Resize,
+    ShowGraphCallback,
+    accuracy,
+    load_learner,
+    minimum,
+    slide,
+    steep,
+    valley,
+    vision_learner,
+)
+from loguru import logger
+
 warnings.filterwarnings("ignore", category=FutureWarning)
+pd.set_option("display.max_colwidth", 50)
 
 
 class ActiveLearner:
@@ -33,17 +48,61 @@ class ActiveLearner:
             eval_df (pd.DataFrame): Predictions on evaluation data
     """
 
-    def __init__(self, model_name: str | Callable):
-        self.model = self.load_model(model_name)
+    def __init__(self, name: str):
+        self.name = name
+        self.model = None
+        self.callbacks = [ShowGraphCallback()]
+        self.loss_fn = CrossEntropyLossFlat()
 
-    def load_model(self, model_name: str | Callable):
-        if isinstance(model_name, Callable):
-            logger.info(f"Loading fastai model {model_name.__name__}")
-            return model_name
+    def load_model(
+        self, model: str | Callable, pretrained: bool = True, device: str = None
+    ):
+        self.model = model
+        self.device = self._detect_optimal_device() if device is None else device
+        self.pretrained = pretrained
 
-        if isinstance(model_name, str):
-            logger.info(f"Loading timm model {model_name}")
-            return model_name
+        if isinstance(model, Callable):
+            logger.info(
+                f"Loading a {'pretrained ' if pretrained else 'non-pretrained '}fastai model `{model.__name__}` on `{self.device}`"
+            )
+
+        if isinstance(model, str):
+            logger.info(
+                f"Loading a {'pretrained ' if pretrained else 'non-pretrained '}timm model `{model}` on `{self.device}`"
+            )
+
+    def _detect_optimal_device(self):
+        """Determine the appropriate device and return device type."""
+        cuda_available = torch.cuda.is_available()
+        mps_available = (
+            hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+        )
+
+        device = "cpu"
+        if cuda_available:
+            device = "cuda"
+            logger.info("CUDA GPU detected - will load model on GPU")
+        elif mps_available:
+            device = "mps"
+            logger.info("Apple Silicon GPU detected - will load model on MPS")
+        else:
+            logger.info("No GPU detected - will load model on CPU")
+
+        return device
+
+    def _optimize_learner(self, device):
+        """Apply optimization settings to learner based on device."""
+        if device != "cpu":
+            self.learn.to_fp16()
+            logger.info("Enabled mixed precision training")
+
+    def _finalize_setup(self):
+        """Set common attributes after learner creation."""
+        self.train_set = self.learn.dls.train_ds.items
+        self.valid_set = self.learn.dls.valid_ds.items
+        self.class_names = self.dls.vocab
+        self.num_classes = self.dls.c
+        logger.info("Done. Ready to train.")
 
     def load_dataset(
         self,
@@ -54,14 +113,23 @@ class ActiveLearner:
         batch_size: int = 16,
         image_size: int = 224,
         batch_tfms: Callable = None,
+        seed: int = None,
         learner_path: str = None,
     ):
-        logger.info(f"Loading dataset from {filepath_col} and {label_col}")
+        logger.info(f"Loading dataset from `{filepath_col}` and `{label_col}` columns")
+        self.image_size = image_size
+        self.batch_size = batch_size
+        self.seed = seed
+        self.eval_accuracy = None
+        self.train_accuracy = None
+        self.valid_accuracy = None
 
-        logger.info("Creating dataloaders")
+        self.dataset = df
+
         self.dls = ImageDataLoaders.from_df(
             df,
             path=".",
+            seed=seed,
             valid_pct=valid_pct,
             fn_col=filepath_col,
             label_col=label_col,
@@ -70,26 +138,37 @@ class ActiveLearner:
             batch_tfms=batch_tfms,
         )
 
-        if learner_path:
-            logger.info(f"Loading learner from {learner_path}")
-            gpu_available = torch.cuda.is_available()
-            if gpu_available:
-                logger.info(f"Loading learner on GPU.")
+        if self.model is None:
+            logger.info(
+                "No model loaded, using a pretrained timm `resnet18`. Load a model by calling `load_model(model_name)`"
+            )
+            self.load_model("resnet18")
+
+        try:
+            if learner_path:
+                logger.info(f"Loading learner from {learner_path}")
+                self.learn = load_learner(learner_path, cpu=(self.device == "cpu"))
+                self.learn.dls = self.dls
             else:
-                logger.info(f"Loading learner on CPU.")
+                logger.info("Creating new learner")
+                self.learn = vision_learner(
+                    self.dls,
+                    self.model,
+                    metrics=accuracy,
+                    pretrained=self.pretrained,
+                    cbs=self.callbacks,
+                    loss_func=self.loss_fn,
+                )
 
-            self.learn = load_learner(learner_path, cpu=not gpu_available)
-        else:
-            logger.info("Creating learner")
-            self.learn = vision_learner(
-                self.dls, self.model, metrics=accuracy
-            ).to_fp16()
+            self._optimize_learner(self.device)
 
-        self.train_set = self.learn.dls.train_ds.items
-        self.valid_set = self.learn.dls.valid_ds.items
-        self.class_names = self.dls.vocab
-        self.num_classes = self.dls.c
-        logger.info("Done. Ready to train.")
+        except Exception as e:
+            action = "load" if learner_path else "create"
+            logger.error(f"Failed to {action} learner")
+            logger.exception(e)
+            raise RuntimeError(f"Failed to {action} learner: {str(e)}")
+
+        self._finalize_setup()
 
     def show_batch(
         self,
@@ -128,9 +207,7 @@ class ActiveLearner:
         logger.info(f"Training head for {head_tuning_epochs} epochs")
         logger.info(f"Training model end-to-end for {epochs} epochs")
         logger.info(f"Learning rate: {lr} with one-cycle learning rate scheduler")
-        self.learn.fine_tune(
-            epochs, lr, freeze_epochs=head_tuning_epochs, cbs=[ShowGraphCallback()]
-        )
+        self.learn.fine_tune(epochs, lr, freeze_epochs=head_tuning_epochs)
 
     def predict(self, filepaths: list[str], batch_size: int = 16):
         """
@@ -143,7 +220,7 @@ class ActiveLearner:
         all_features = []
 
         def hook_fn(module, input, output):
-            all_features.append(output.detach().cpu())  
+            all_features.append(output.detach().cpu())
 
         penultimate_layer = self.learn.model[1][4]
         handle = penultimate_layer.register_forward_hook(hook_fn)
@@ -167,6 +244,17 @@ class ActiveLearner:
                 "logits": logits.numpy().tolist(),
                 "embeddings": features.numpy().tolist(),
             }
+        )
+
+        self.pred_df["pred_conf"] = self.pred_df["pred_conf"].round(4)
+        self.pred_df["probs"] = self.pred_df["probs"].apply(
+            lambda x: [round(p, 4) for p in x]
+        )
+        self.pred_df["logits"] = self.pred_df["logits"].apply(
+            lambda x: [round(l, 4) for l in x]
+        )
+        self.pred_df["embeddings"] = self.pred_df["embeddings"].apply(
+            lambda x: [round(e, 4) for e in x]
         )
 
         return self.pred_df
@@ -193,6 +281,7 @@ class ActiveLearner:
         )
 
         accuracy = float((self.eval_df["label"] == self.eval_df["pred_label"]).mean())
+        self.eval_accuracy = accuracy
         logger.info(f"Accuracy: {accuracy:.2%}")
         return accuracy
 
@@ -210,7 +299,7 @@ class ActiveLearner:
         """
 
         # Remove samples that is already in the training set
-        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+        df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
 
         if strategy == "least-confidence":
             logger.info(
@@ -219,6 +308,7 @@ class ActiveLearner:
             df.loc[:, "score"] = 1 - (df["pred_conf"]) / (
                 self.num_classes - (self.num_classes - 1)
             )
+            df.loc[:, "strategy"] = "least-confidence"
 
         elif strategy == "margin-of-confidence":
             logger.info(
@@ -232,6 +322,7 @@ class ActiveLearner:
             df.loc[:, "score"] = df["probs"].apply(
                 lambda x: 1 - (np.sort(x)[-1] - np.sort(x)[-2])
             )
+            df.loc[:, "strategy"] = "margin-of-confidence"
 
         elif strategy == "ratio-of-confidence":
             logger.info(
@@ -245,6 +336,7 @@ class ActiveLearner:
             df.loc[:, "score"] = df["probs"].apply(
                 lambda x: np.sort(x)[-2] / np.sort(x)[-1]
             )
+            df.loc[:, "strategy"] = "ratio-of-confidence"
 
         elif strategy == "entropy":
             logger.info(f"Using entropy strategy to get top {num_samples} samples")
@@ -254,15 +346,26 @@ class ActiveLearner:
 
             # Normalize the uncertainty score to be between 0 and 1 by dividing by log2 of the number of classes
             df.loc[:, "score"] = df["score"] / np.log2(self.num_classes)
+            df.loc[:, "strategy"] = "entropy"
 
         else:
             logger.error(f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
+        df = df[
+            [
+                "filepath",
+                "strategy",
+                "score",
+                "pred_label",
+                "pred_conf",
+                "probs",
+                "logits",
+                "embeddings",
+            ]
+        ]
 
-        df["score"] = df["score"].map("{:.4f}".format)
-        df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+        df["score"] = df["score"].round(4)
 
         return df.sort_values(by="score", ascending=False).head(num_samples)
 
@@ -279,7 +382,7 @@ class ActiveLearner:
 
         """
         # Remove samples that is already in the training set
-        df = df[~df["filepath"].isin(self.train_set["filepath"])].copy()
+        df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
 
         if strategy == "model-based-outlier":
             logger.info(
@@ -299,7 +402,8 @@ class ActiveLearner:
             ]
 
             # Get the logits for the unlabeled set
-            unlabeled_set_preds = self.predict(df["filepath"].tolist())
+            # unlabeled_set_preds = self.predict(df["filepath"].tolist())
+            unlabeled_set_preds = df
 
             # For each element in the unlabeled set logits, compare it to the validation set ranked logits and get the position in the ranked logits
             unlabeled_set_logits = []
@@ -325,14 +429,28 @@ class ActiveLearner:
 
             # Add outlier scores to dataframe
             df.loc[:, "score"] = unlabeled_set_logits
+            df.loc[:, "strategy"] = "model-based-outlier"
+            df = df[
+                [
+                    "filepath",
+                    "strategy",
+                    "score",
+                    "pred_label",
+                    "pred_conf",
+                    "probs",
+                    "logits",
+                    "embeddings",
+                ]
+            ]
 
-            df = df[["filepath", "pred_label", "pred_conf", "score", "probs", "logits"]]
-
-            df["score"] = df["score"].map("{:.4f}".format)
-            df["pred_conf"] = df["pred_conf"].map("{:.4f}".format)
+            df["score"] = df["score"].round(4)
 
             # Sort by score ascending higher rank = more outlier-like compared to the validation set
             return df.sort_values(by="score", ascending=False).head(num_samples)
+
+        else:
+            logger.error(f"Unknown strategy: {strategy}")
+            raise ValueError(f"Unknown strategy: {strategy}")
 
     def sample_random(self, df: pd.DataFrame, num_samples: int, seed: int = None):
         """
@@ -340,11 +458,130 @@ class ActiveLearner:
         """
 
         logger.info(f"Sampling {num_samples} random samples")
+        df = df[~df["filepath"].isin(self.dataset["filepath"])].copy()
+        df["strategy"] = "random"
+        df["score"] = 0.0
+
         if seed is not None:
             logger.info(f"Using seed: {seed}")
         return df.sample(n=num_samples, random_state=seed)
 
-    def label(self, df: pd.DataFrame, output_filename: str = "labeled"):
+    def sample_combination(self, df: pd.DataFrame, num_samples: int, combination: dict):
+        """
+        Sample samples based on a combination of strategies.
+
+        Args:
+            df: DataFrame with filepaths and predicted labels, and confidence scores
+            num_samples: Total number of samples to select
+            combination: Dictionary mapping strategy names to proportions, e.g.:
+                {
+                    "least-confidence": 0.4,
+                    "model-based-outlier": 0.6
+                }
+
+                Supported strategies:
+                Uncertainty-based:
+                    - least-confidence
+                    - margin-of-confidence
+                    - ratio-of-confidence
+                    - entropy
+                Diversity-based:
+                    - model-based-outlier
+                    - cluster-based
+                    - representative
+                Other:
+                    - random
+
+        Returns:
+            DataFrame containing the combined samples
+        """
+        logger.info(f"Using combination sampling to get {num_samples} samples")
+
+        # Validate total proportions sum to 1
+        if not np.isclose(sum(combination.values()), 1.0):
+            raise ValueError(
+                f"Proportions must sum to 1, got {sum(combination.values())}"
+            )
+
+        # Calculate samples per strategy and handle rounding
+        samples_per_strategy = {
+            strategy: int(proportion * num_samples)
+            for strategy, proportion in combination.items()
+        }
+
+        # Add any remaining samples to the first strategy
+        remaining = num_samples - sum(samples_per_strategy.values())
+        if remaining > 0:
+            first_strategy = list(combination.keys())[0]
+            samples_per_strategy[first_strategy] += remaining
+
+        # Get samples for each strategy
+        sampled_dfs = []
+        for strategy, n_samples in samples_per_strategy.items():
+            if n_samples == 0:
+                continue
+
+            if strategy in [
+                "least-confidence",
+                "margin-of-confidence",
+                "ratio-of-confidence",
+                "entropy",
+            ]:
+                strategy_df = self.sample_uncertain(
+                    df=df, num_samples=n_samples, strategy=strategy
+                )
+            elif strategy in ["model-based-outlier", "cluster-based", "representative"]:
+                strategy_df = self.sample_diverse(
+                    df=df, num_samples=n_samples, strategy=strategy
+                )
+            elif strategy == "random":
+                strategy_df = self.sample_random(df=df, num_samples=n_samples)
+            else:
+                raise ValueError(f"Unknown strategy: {strategy}")
+
+            sampled_dfs.append(strategy_df)
+            # Remove selected samples from the pool to avoid duplicates
+            df = df[~df["filepath"].isin(strategy_df["filepath"])]
+
+        return pd.concat(sampled_dfs, ignore_index=True)
+
+    def summary(self, filename: str = None, show: bool = True):
+        results_df = pd.DataFrame(
+            {
+                "name": [self.name],
+                "accuracy": [self.eval_accuracy],
+                "train_set_size": [len(self.train_set)],
+                "valid_set_size": [len(self.valid_set)],
+                "dataset_size": [len(self.train_set) + len(self.valid_set)],
+                "num_classes": [self.num_classes],
+                "model": [self.model],
+                "pretrained": [self.pretrained],
+                "loss_fn": [str(self.loss_fn)],
+                "device": [self.device],
+                "seed": [self.seed],
+                "batch_size": [self.batch_size],
+                "image_size": [self.image_size],
+            }
+        )
+
+        if filename is None:
+            # Generate filename with timestamp, accuracy and dataset size
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            accuracy_str = f"{self.eval_accuracy:.2%}" if self.eval_accuracy is not None else "no_eval"
+            dataset_size = len(self.train_set) + len(self.valid_set)
+            filename = f"{self.name}_{timestamp}_acc_{accuracy_str}_n_{dataset_size}.parquet"
+        elif not filename.endswith(".parquet"):
+            filename = f"{filename}.parquet"
+
+        results_df.to_parquet(filename)
+        logger.info(f"Saved results to {filename}")
+        if show:
+            return results_df
+        else:
+            return None
+
+    def label(self, df: pd.DataFrame, output_filename: str):
         """
         Launch a labeling interface for the user to label the samples.
         Input is a df with filepaths listing the files to be labeled. Output is a df with filepaths and labels.
@@ -391,6 +628,10 @@ class ActiveLearner:
 
                         # Add bar plot with top 5 predictions
                         with gr.Column():
+                            filename = gr.Textbox(
+                                label="Filename", value=filepaths[0], interactive=False
+                            )
+
                             pred_plot = gr.BarPlot(
                                 x="probability",
                                 y="class",
@@ -406,9 +647,6 @@ class ActiveLearner:
                                 ).nlargest(5, "probability"),
                             )
 
-                            filename = gr.Textbox(
-                                label="Filename", value=filepaths[0], interactive=False
-                            )
                             with gr.Row():
                                 pred_label = gr.Textbox(
                                     label="Predicted Label",
@@ -418,21 +656,33 @@ class ActiveLearner:
                                     interactive=False,
                                 )
 
+                                def format_for_display(value):
+                                    return f"{value:.4f}" if pd.notnull(value) else ""
+
                                 pred_conf = gr.Textbox(
                                     label="Confidence",
-                                    value=df["pred_conf"].iloc[0]
+                                    value=format_for_display(df["pred_conf"].iloc[0])
                                     if "pred_conf" in df.columns
                                     else "",
                                     interactive=False,
                                 )
 
-                            sample_score = gr.Textbox(
-                                label="Sample Score [0-1] - Indicates how informative the sample is. Higher means more informative.",
-                                value=df["score"].iloc[0]
-                                if "score" in df.columns
-                                else "",
-                                interactive=False,
-                            )
+                            with gr.Row():
+                                strategy = gr.Textbox(
+                                    label="Sampling Strategy",
+                                    value=df["strategy"].iloc[0]
+                                    if "strategy" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
+
+                                sample_score = gr.Textbox(
+                                    label="Score",
+                                    value=format_for_display(df["score"].iloc[0])
+                                    if "score" in df.columns
+                                    else "",
+                                    interactive=False,
+                                )
 
                     category = gr.Radio(
                         choices=self.class_names,
@@ -474,6 +724,7 @@ class ActiveLearner:
                             progress,
                             pred_plot,
                             sample_score,
+                            strategy,
                         ],
                     )
 
@@ -587,6 +838,9 @@ class ActiveLearner:
                         next_idx,
                         plot_data,
                         df["score"].iloc[next_idx] if "score" in df.columns else "",
+                        df["strategy"].iloc[next_idx]
+                        if "strategy" in df.columns
+                        else "",
                     )
                 plot_data = (
                     None
@@ -614,6 +868,9 @@ class ActiveLearner:
                     current_idx,
                     plot_data,
                     df["score"].iloc[current_idx] if "score" in df.columns else "",
+                    df["strategy"].iloc[current_idx]
+                    if "strategy" in df.columns
+                    else "",
                 )
 
             def save_and_next(current_idx, selected_category):
@@ -647,6 +904,9 @@ class ActiveLearner:
                         current_idx,
                         plot_data,
                         df["score"].iloc[current_idx] if "score" in df.columns else "",
+                        df["strategy"].iloc[current_idx]
+                        if "strategy" in df.columns
+                        else "",
                     )
 
                 # Save the current annotation
@@ -682,6 +942,9 @@ class ActiveLearner:
                         current_idx,
                         plot_data,
                         df["score"].iloc[current_idx] if "score" in df.columns else "",
+                        df["strategy"].iloc[current_idx]
+                        if "strategy" in df.columns
+                        else "",
                     )
 
                 plot_data = (
@@ -708,15 +971,27 @@ class ActiveLearner:
                     next_idx,
                     plot_data,
                     df["score"].iloc[next_idx] if "score" in df.columns else "",
+                    df["strategy"].iloc[next_idx] if "strategy" in df.columns else "",
                 )
 
             def convert_csv_to_parquet():
                 try:
-                    df = pd.read_csv(f"{output_filename}.csv", header=None)
+                    csv_path = f"{output_filename}.csv"
+                    parquet_path = (
+                        f"{output_filename}.parquet"
+                        if not output_filename.endswith(".parquet")
+                        else output_filename
+                    )
+
+                    df = pd.read_csv(csv_path, header=None)
                     df.columns = ["filepath", "label"]
                     df = df.drop_duplicates(subset=["filepath"], keep="last")
-                    df.to_parquet(f"{output_filename}.parquet")
-                    gr.Info(f"Annotation saved to {output_filename}.parquet")
+                    df.reset_index(drop=True, inplace=True)
+                    df.to_parquet(parquet_path)
+                    gr.Info(f"Annotation saved to {parquet_path}")
+
+                    # remove csv file
+                    os.remove(csv_path)
                 except Exception as e:
                     logger.error(e)
                     return
@@ -734,6 +1009,7 @@ class ActiveLearner:
                     progress,
                     pred_plot,
                     sample_score,
+                    strategy,
                 ],
             )
 
@@ -750,6 +1026,7 @@ class ActiveLearner:
                     progress,
                     pred_plot,
                     sample_score,
+                    strategy,
                 ],
             )
 
@@ -766,6 +1043,7 @@ class ActiveLearner:
                     progress,
                     pred_plot,
                     sample_score,
+                    strategy,
                 ],
             )
 
@@ -773,19 +1051,18 @@ class ActiveLearner:
 
         demo.launch(height=1000)
 
-    def add_to_train_set(self, df: pd.DataFrame, output_filename: str):
+    def add_to_dataset(self, labeled_df: pd.DataFrame, output_filename: str):
         """
-        Add samples to the training set.
+        Add samples to the dataset used for training - include train and validation sets.
         """
-        new_train_set = df.copy()
+        labeled_df = labeled_df.copy()
 
-        logger.info(f"Adding {len(new_train_set)} samples to training set")
-        self.train_set = pd.concat([self.train_set, new_train_set])
+        logger.info(f"Adding {len(labeled_df)} samples to dataset")
+        self.dataset = pd.concat([self.dataset, labeled_df])
+        self.dataset = self.dataset.drop_duplicates(subset=["filepath"], keep="last")
+        self.dataset.reset_index(drop=True, inplace=True)
 
-        self.train_set = self.train_set.drop_duplicates(
-            subset=["filepath"], keep="last"
-        )
-        self.train_set.reset_index(drop=True, inplace=True)
-
-        self.train_set.to_parquet(f"{output_filename}.parquet")
-        logger.info(f"Saved training set to {output_filename}.parquet")
+        if not output_filename.endswith(".parquet"):
+            output_filename = f"{output_filename}.parquet"
+        self.dataset.to_parquet(output_filename)
+        logger.info(f"Saved dataset to {output_filename}")
