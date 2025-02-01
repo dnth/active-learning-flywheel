@@ -186,9 +186,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#usage">
+<a class="md-nav__link" href="#quickstart">
 <span class="md-ellipsis">
-      🛠️ Usage
+      🛠️ Quickstart
     </span>
 </a>
 </li>
@@ -351,9 +351,9 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#usage">
+<a class="md-nav__link" href="#quickstart">
 <span class="md-ellipsis">
-      🛠️ Usage
+      🛠️ Quickstart
     </span>
 </a>
 </li>
@@ -442,6 +442,19 @@
 <a href="https://github.com/dnth/active-vision/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-green.svg?style=for-the-badge&amp;logo=apache&amp;logoColor=white"/></a></p>
 <p align="center">
 <img alt="active-vision" src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/logo.png"/>
+<br/>
+<br/>
+<a href="https://dnth.github.io/active-vision" rel="noopener noreferrer" target="_blank"><strong>Explore the docs »</strong></a>
+<br/>
+<a href="#-quickstart" rel="noopener noreferrer" target="_blank">Quickstart</a>
+    ·
+    <a href="https://github.com/dnth/active-vision/issues/new?assignees=&amp;labels=Feature+Request&amp;projects=&amp;template=feature_request.md" rel="noopener noreferrer" target="_blank">Feature Request</a>
+    ·
+    <a href="https://github.com/dnth/active-vision/issues/new?assignees=&amp;labels=bug&amp;projects=&amp;template=bug_report.md" rel="noopener noreferrer" target="_blank">Report Bug</a>
+    ·
+    <a href="https://github.com/dnth/active-vision/discussions" rel="noopener noreferrer" target="_blank">Discussions</a>
+    ·
+    <a href="https://dicksonneoh.com/" rel="noopener noreferrer" target="_blank">About</a>
 </p>
 <p>The goal of this project is to create a framework for the active learning loop for computer vision. The diagram below shows a general workflow of how the active learning loop works.</p>
 <p align="center">
@@ -493,13 +506,7 @@ Once the virtual environment is created, you can install the package using pip.<
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>active-vision
 </code></pre></div></p>
 </blockquote>
-<h2 id="usage">🛠️ Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
-<p>See the <a href="./nbs/04_relabel_loop.ipynb">notebook</a> for a complete example.</p>
-<p>Be sure to prepared 3 subsets of the dataset:
-- <a href="./nbs/initial_samples.parquet">Initial samples</a>: A dataframe of a labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.
-- <a href="./nbs/unlabeled_samples.parquet">Unlabeled samples</a>: A dataframe of <em>unlabeled</em> images. We will continuously sample from this set using active learning strategies.
-- <a href="./nbs/evaluation_samples.parquet">Evaluation samples</a>: A dataframe of <em>labeled</em> images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</p>
-<p>As a toy example I created the above 3 datasets from the imagenette dataset.</p>
+<h2 id="quickstart">🛠️ Quickstart<a class="headerlink" href="#quickstart" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">active_vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearner</span>
 
 <span class="c1"># Create an active learner instance</span>
