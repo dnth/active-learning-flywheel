@@ -12,13 +12,11 @@
         <meta name="author" content="dnth">
       
       
-        <link rel="canonical" href="https://dnth.github.io/active-vision/preparing_data/">
+        <link rel="canonical" href="https://dnth.github.io/active-vision/train/">
       
       
-        <link rel="prev" href="../quickstart/">
+        <link rel="prev" href="../active_learning/">
       
-      
-        <link rel="next" href="../active_learning/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -26,7 +24,7 @@
     
     
       
-        <title>Preparing Data - active-vision</title>
+        <title>Training the Final Model - active-vision</title>
       
     
     
@@ -82,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#download-the-dataset" class="md-skip">
+        <a href="#introduction" class="md-skip">
           Skip to content
         </a>
       
@@ -118,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Preparing Data
+              Training the Final Model
             
           </span>
         </div>
@@ -305,29 +303,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Preparing Data
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../preparing_data/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -337,69 +316,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#download-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#load-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#initial-samples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Initial samples
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#unlabeled-samples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Unlabeled samples
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evaluation-samples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Evaluation samples
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -429,10 +345,29 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../train/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Training the Final Model
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -442,6 +377,51 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loading-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Loading the data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluating the model
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -471,45 +451,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#download-the-dataset" class="md-nav__link">
+  <a href="#introduction" class="md-nav__link">
     <span class="md-ellipsis">
-      Download the dataset
+      Introduction
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#load-the-dataset" class="md-nav__link">
+  <a href="#loading-the-data" class="md-nav__link">
     <span class="md-ellipsis">
-      Load the dataset
+      Loading the data
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#initial-samples" class="md-nav__link">
+  <a href="#evaluating-the-model" class="md-nav__link">
     <span class="md-ellipsis">
-      Initial samples
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#unlabeled-samples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Unlabeled samples
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evaluation-samples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Evaluation samples
+      Evaluating the model
     </span>
   </a>
   
@@ -537,49 +499,13 @@
   
 
 
-  <h1>Preparing Data</h1>
+  <h1>Training the Final Model</h1>
 
-<h2 id="download-the-dataset">Download the dataset<a class="headerlink" href="#download-the-dataset" title="Permanent link">&para;</a></h2>
-<p>In this example, we will use the Imagenette dataset to demonstrate how to prepare data for active learning.</p>
-<p>First, lets download the dataset and extract it.</p>
-<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">s3</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">fast</span><span class="o">-</span><span class="n">ai</span><span class="o">-</span><span class="n">imageclas</span><span class="o">/</span><span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
-<span class="err">!</span><span class="n">tar</span> <span class="o">-</span><span class="n">xvzf</span> <span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
-<span class="err">!</span><span class="n">mv</span> <span class="n">imagenette2</span> <span class="n">data</span><span class="o">/</span><span class="n">imagenette</span>
-<span class="err">!</span><span class="n">rm</span> <span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
-</code></pre></div>
-<h2 id="load-the-dataset">Load the dataset<a class="headerlink" href="#load-the-dataset" title="Permanent link">&para;</a></h2>
-<p><code>active-vision</code> currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: <code>filepath</code> and <code>label</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastai.vision.all</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_image_files</span>
-
-<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data/imagenette/train&quot;</span>
-<span class="n">image_files</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">image_files</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>9469
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">lbl_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;n01440764&quot;</span><span class="p">:</span> <span class="s2">&quot;tench&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n02102040&quot;</span><span class="p">:</span> <span class="s2">&quot;English springer&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n02979186&quot;</span><span class="p">:</span> <span class="s2">&quot;cassette player&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03000684&quot;</span><span class="p">:</span> <span class="s2">&quot;chain saw&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03028079&quot;</span><span class="p">:</span> <span class="s2">&quot;church&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03394916&quot;</span><span class="p">:</span> <span class="s2">&quot;French horn&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03417042&quot;</span><span class="p">:</span> <span class="s2">&quot;garbage truck&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03425413&quot;</span><span class="p">:</span> <span class="s2">&quot;gas pump&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03445777&quot;</span><span class="p">:</span> <span class="s2">&quot;golf ball&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03888257&quot;</span><span class="p">:</span> <span class="s2">&quot;parachute&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre></div>
+<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
+<p>Now that we have a dataset of labeled samples from the active learning process, we can train a model on this dataset.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="c1"># Create a dataframe with the filepath and label from parent directory</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">]</span>
-
-<span class="c1"># Map the labels to the label dictionary</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbl_dict</span><span class="p">[</span><span class="n">lbl</span><span class="p">]</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
-
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">})</span>
-
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;active_labeled.parquet&quot;</span><span class="p">)</span>
 <span class="n">df</span>
 </code></pre></div>
 <div>
@@ -607,28 +533,28 @@
   <tbody>
     <tr>
       <th>0</th>
-      <td>data/imagenette/train/n03394916/ILSVRC2012_val_00046669.JPEG</td>
-      <td>French horn</td>
+      <td>data/imagenette/train/n02102040/n02102040_2788...</td>
+      <td>English springer</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_58454.JPEG</td>
-      <td>French horn</td>
+      <td>data/imagenette/train/n02102040/n02102040_3759...</td>
+      <td>English springer</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_32588.JPEG</td>
-      <td>French horn</td>
+      <td>data/imagenette/train/n02102040/n02102040_1916...</td>
+      <td>English springer</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_33663.JPEG</td>
-      <td>French horn</td>
+      <td>data/imagenette/train/n02102040/n02102040_6147...</td>
+      <td>English springer</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_27948.JPEG</td>
-      <td>French horn</td>
+      <td>data/imagenette/train/n02102040/n02102040_403....</td>
+      <td>English springer</td>
     </tr>
     <tr>
       <th>...</th>
@@ -636,259 +562,224 @@
       <td>...</td>
     </tr>
     <tr>
-      <th>9464</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
+      <th>238</th>
+      <td>data/imagenette/train/n03417042/n03417042_1869...</td>
+      <td>garbage truck</td>
     </tr>
     <tr>
-      <th>9465</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
+      <th>239</th>
+      <td>data/imagenette/train/n02102040/n02102040_6763...</td>
+      <td>English springer</td>
     </tr>
     <tr>
-      <th>9466</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
+      <th>240</th>
+      <td>data/imagenette/train/n01440764/n01440764_1455...</td>
+      <td>tench</td>
     </tr>
     <tr>
-      <th>9467</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
+      <th>241</th>
+      <td>data/imagenette/train/n03028079/n03028079_2489...</td>
+      <td>church</td>
     </tr>
     <tr>
-      <th>9468</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
+      <th>242</th>
+      <td>data/imagenette/train/n03425413/n03425413_2110...</td>
+      <td>gas pump</td>
     </tr>
   </tbody>
 </table>
-<p>9469 rows × 2 columns</p>
+<p>243 rows × 2 columns</p>
 </div>
 
-<h2 id="initial-samples">Initial samples<a class="headerlink" href="#initial-samples" title="Permanent link">&para;</a></h2>
-<p>As an initial step, we will randomly sample 10 samples from each class. We will use these samples to kickstart the active learning process.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">316</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<h2 id="loading-the-data">Loading the data<a class="headerlink" href="#loading-the-data" title="Permanent link">&para;</a></h2>
+<p>We will use the fastai to train a model on this dataset. Feel free to use any other library you prefer.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastai.vision.all</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">base_path</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+<span class="n">dls</span> <span class="o">=</span> <span class="n">ImageDataLoaders</span><span class="o">.</span><span class="n">from_df</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">path</span><span class="o">=</span><span class="n">base_path</span><span class="p">,</span>
+    <span class="n">valid_pct</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">fn_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span>
+    <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span>
+    <span class="n">bs</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">item_tfms</span><span class="o">=</span><span class="n">Resize</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span>
+    <span class="c1"># batch_tfms=aug_transforms(size=224),</span>
 <span class="p">)</span>
 
-<span class="n">initial_samples</span>
+<span class="n">dls</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>/var/folders/9y/5mpk58851fq38f8ljx2svvnm0000gn/T/ipykernel_22109/414664958.py:3: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-  .apply(lambda x: x.sample(n=10, random_state=316))
+<p><img alt="png" src="../train_files/train_3_0.png" /></p>
+<div class="highlight"><pre><span></span><code><span class="n">learn</span> <span class="o">=</span> <span class="n">vision_learner</span><span class="p">(</span><span class="n">dls</span><span class="p">,</span> <span class="s2">&quot;vit_small_patch16_224&quot;</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">accuracy</span><span class="p">)</span><span class="o">.</span><span class="n">to_fp16</span><span class="p">()</span>
+<span class="c1"># learn.lr_find(suggest_funcs=(valley, slide))</span>
 </code></pre></div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
+<div class="highlight"><pre><span></span><code><span class="n">learn</span><span class="o">.</span><span class="n">fine_tune</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">base_lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">freeze_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">cbs</span><span class="o">=</span><span class="n">ShowGraphCallback</span><span class="p">())</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/fastai/callback/fp16.py:47: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast(&#39;cuda&#39;, args...)` instead.
+  self.autocast,self.learn.scaler,self.scales = autocast(dtype=dtype),GradScaler(**self.kwargs),L()
+/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of &#39;cuda&#39;, but CUDA is not available. Disabling
+  warnings.warn(
+/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/fastai/callback/fp16.py:47: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler(&#39;cuda&#39;, args...)` instead.
+  self.autocast,self.learn.scaler,self.scales = autocast(dtype=dtype),GradScaler(**self.kwargs),L()
+/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+  warnings.warn(
+</code></pre></div>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
     }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
     }
-
-    .dataframe thead th {
-        text-align: right;
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
     }
 </style>
+
 <table border="1" class="dataframe">
   <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n02102040/n02102040_2788.JPEG</td>
-      <td>English springer</td>
+      <td>0</td>
+      <td>3.229721</td>
+      <td>1.472226</td>
+      <td>0.541667</td>
+      <td>00:08</td>
     </tr>
     <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n02102040/n02102040_3759.JPEG</td>
-      <td>English springer</td>
+      <td>1</td>
+      <td>1.934528</td>
+      <td>0.310813</td>
+      <td>0.916667</td>
+      <td>00:02</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n02102040/n02102040_1916.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n02102040/n02102040_6147.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n02102040/n02102040_403.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>95</th>
-      <td>data/imagenette/train/n01440764/n01440764_10043.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>96</th>
-      <td>data/imagenette/train/n01440764/n01440764_31535.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>97</th>
-      <td>data/imagenette/train/n01440764/n01440764_12848.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>98</th>
-      <td>data/imagenette/train/n01440764/n01440764_3997.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>99</th>
-      <td>data/imagenette/train/n01440764/n01440764_29788.JPEG</td>
-      <td>tench</td>
+      <td>2</td>
+      <td>1.189405</td>
+      <td>0.198128</td>
+      <td>0.958333</td>
+      <td>00:02</td>
     </tr>
   </tbody>
 </table>
-<p>100 rows × 2 columns</p>
-</div>
 
-<p>Let's check the distribution of the labels.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>label
-English springer    10
-French horn         10
-cassette player     10
-chain saw           10
-church              10
-garbage truck       10
-gas pump            10
-golf ball           10
-parachute           10
-tench               10
-Name: count, dtype: int64
-</code></pre></div>
-<p>And save it to a parquet file.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;initial_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="unlabeled-samples">Unlabeled samples<a class="headerlink" href="#unlabeled-samples" title="Permanent link">&para;</a></h2>
-<p>For the remaining samples, we will use them as unlabeled samples. We will sample from these samples using active learning strategies.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Get the remaining samples by using pd.Index.difference</span>
-<span class="n">remaining_samples</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">initial_samples</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">remaining_samples</span>
-</code></pre></div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
+<p><img alt="png" src="../train_files/train_5_3.png" /></p>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
     }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
     }
-
-    .dataframe thead th {
-        text-align: right;
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
     }
 </style>
+
 <table border="1" class="dataframe">
   <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/n03394916_4437.JPEG</td>
-      <td>French horn</td>
+      <td>0</td>
+      <td>0.050988</td>
+      <td>0.175159</td>
+      <td>0.958333</td>
+      <td>00:05</td>
     </tr>
     <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_42413.JPEG</td>
-      <td>French horn</td>
+      <td>1</td>
+      <td>0.060211</td>
+      <td>0.165249</td>
+      <td>0.958333</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_38808.JPEG</td>
-      <td>French horn</td>
+      <td>2</td>
+      <td>0.039981</td>
+      <td>0.193097</td>
+      <td>0.937500</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_24128.JPEG</td>
-      <td>French horn</td>
+      <td>3</td>
+      <td>0.028811</td>
+      <td>0.185286</td>
+      <td>0.916667</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_11289.JPEG</td>
-      <td>French horn</td>
+      <td>4</td>
+      <td>0.021800</td>
+      <td>0.170266</td>
+      <td>0.916667</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
+      <td>5</td>
+      <td>0.016554</td>
+      <td>0.166251</td>
+      <td>0.937500</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>9364</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
+      <td>6</td>
+      <td>0.017647</td>
+      <td>0.179208</td>
+      <td>0.916667</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>9365</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
+      <td>7</td>
+      <td>0.016122</td>
+      <td>0.185861</td>
+      <td>0.916667</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>9366</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
+      <td>8</td>
+      <td>0.013686</td>
+      <td>0.192955</td>
+      <td>0.916667</td>
+      <td>00:03</td>
     </tr>
     <tr>
-      <th>9367</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9368</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
+      <td>9</td>
+      <td>0.011061</td>
+      <td>0.198078</td>
+      <td>0.916667</td>
+      <td>00:03</td>
     </tr>
   </tbody>
 </table>
-<p>9369 rows × 2 columns</p>
-</div>
 
-<div class="highlight"><pre><span></span><code><span class="n">remaining_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;unlabeled_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="evaluation-samples">Evaluation samples<a class="headerlink" href="#evaluation-samples" title="Permanent link">&para;</a></h2>
-<p>Now let's create the evaluation samples which will be used to evaluate the performance of the model. We will use the validation set from the Imagenette dataset as the evaluation set.</p>
-<div class="highlight"><pre><span></span><code><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data/imagenette/val&quot;</span>
-<span class="n">image_files</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">image_files</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>3925
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">]</span>
-
-<span class="c1"># Map the labels to the label dictionary</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbl_dict</span><span class="p">[</span><span class="n">lbl</span><span class="p">]</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
-
-<span class="n">evaluation_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">}</span>
-<span class="p">)</span>
-
-<span class="n">evaluation_samples</span>
+<p><img alt="png" src="../train_files/train_5_6.png" /></p>
+<h2 id="evaluating-the-model">Evaluating the model<a class="headerlink" href="#evaluating-the-model" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">test_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
+<span class="n">test_df</span>
 </code></pre></div>
 <div>
 <style scoped>
@@ -973,9 +864,50 @@ Name: count, dtype: int64
 <p>3925 rows × 2 columns</p>
 </div>
 
-<div class="highlight"><pre><span></span><code><span class="n">evaluation_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">filepaths</span> <span class="o">=</span> <span class="n">test_df</span><span class="p">[</span><span class="s2">&quot;filepath&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="n">test_df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="n">test_dl</span> <span class="o">=</span> <span class="n">dls</span><span class="o">.</span><span class="n">test_dl</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">preds</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">cls_preds</span> <span class="o">=</span> <span class="n">learn</span><span class="o">.</span><span class="n">get_preds</span><span class="p">(</span><span class="n">dl</span><span class="o">=</span><span class="n">test_dl</span><span class="p">,</span> <span class="n">with_decoded</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="n">filepaths</span><span class="p">,</span>
+        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
+        <span class="s2">&quot;pred_label&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">learn</span><span class="o">.</span><span class="n">dls</span><span class="o">.</span><span class="n">vocab</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cls_preds</span><span class="o">.</span><span class="n">numpy</span><span class="p">()],</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;pred_label&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="n">accuracy</span>
 </code></pre></div>
-<p>We are now ready to start the active learning process.</p>
+<div class="highlight"><pre><span></span><code>/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/fastai/callback/fp16.py:47: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast(&#39;cuda&#39;, args...)` instead.
+  self.autocast,self.learn.scaler,self.scales = autocast(dtype=dtype),GradScaler(**self.kwargs),L()
+/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of &#39;cuda&#39;, but CUDA is not available. Disabling
+  warnings.warn(
+/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/fastai/callback/fp16.py:47: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler(&#39;cuda&#39;, args...)` instead.
+  self.autocast,self.learn.scaler,self.scales = autocast(dtype=dtype),GradScaler(**self.kwargs),L()
+/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+  warnings.warn(
+</code></pre></div>
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+<div class="highlight"><pre><span></span><code>0.9936305732484076
+</code></pre></div>
+<p>With a mere 243 labeled samples, we have achieved an accuracy of 99.36% on the test set. The entire dataset contains over 9000 images, but it turns out that using active learning, we can achieve a high accuracy with a small number of labeled samples.</p>
 
 
 
@@ -998,7 +930,7 @@ Name: count, dtype: int64
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-01T16:23:38+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-01</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-01T16:29:06+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-01</span>
   </span>
 
     
@@ -1008,7 +940,7 @@ Name: count, dtype: int64
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-01T16:23:38+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-01</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-01T16:29:06+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-01</span>
   </span>
 
     
