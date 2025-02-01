@@ -5,6 +5,19 @@
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/logo.png" alt="active-vision">
+    <br />
+    <br />
+    <a href="https://dnth.github.io/active-vision" target="_blank" rel="noopener noreferrer"><strong>Explore the docs »</strong></a>
+    <br />
+    <a href="#-quickstart" target="_blank" rel="noopener noreferrer">Quickstart</a>
+    ·
+    <a href="https://github.com/dnth/active-vision/issues/new?assignees=&labels=Feature+Request&projects=&template=feature_request.md" target="_blank" rel="noopener noreferrer">Feature Request</a>
+    ·
+    <a href="https://github.com/dnth/active-vision/issues/new?assignees=&labels=bug&projects=&template=bug_report.md" target="_blank" rel="noopener noreferrer">Report Bug</a>
+    ·
+    <a href="https://github.com/dnth/active-vision/discussions" target="_blank" rel="noopener noreferrer">Discussions</a>
+    ·
+    <a href="https://dicksonneoh.com/" target="_blank" rel="noopener noreferrer">About</a>
 </p>
 
 The goal of this project is to create a framework for the active learning loop for computer vision. The diagram below shows a general workflow of how the active learning loop works.
@@ -70,15 +83,7 @@ pip install -e .
 > uv pip install active-vision
 > ```
 
-## 🛠️ Usage
-See the [notebook](./nbs/04_relabel_loop.ipynb) for a complete example.
-
-Be sure to prepared 3 subsets of the dataset:
-- [Initial samples](./nbs/initial_samples.parquet): A dataframe of a labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.
-- [Unlabeled samples](./nbs/unlabeled_samples.parquet): A dataframe of *unlabeled* images. We will continuously sample from this set using active learning strategies.
-- [Evaluation samples](./nbs/evaluation_samples.parquet): A dataframe of *labeled* images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.
-
-As a toy example I created the above 3 datasets from the imagenette dataset.
+## 🛠️ Quickstart
 
 ```python
 from active_vision import ActiveLearner
