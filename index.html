@@ -501,29 +501,44 @@ Once the virtual environment is created, you can install the package using pip.<
 - <a href="./nbs/evaluation_samples.parquet">Evaluation samples</a>: A dataframe of <em>labeled</em> images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</p>
 <p>As a toy example I created the above 3 datasets from the imagenette dataset.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">active_vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearner</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="c1"># Create an active learner instance with a model</span>
-<span class="n">al</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span><span class="s2">"resnet18"</span><span class="p">)</span>
+<span class="c1"># Create an active learner instance</span>
+<span class="n">al</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"cycle-1"</span><span class="p">)</span>
+
+<span class="c1"># Load model</span>
+<span class="n">al</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"resnet18"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load dataset </span>
 <span class="n">train_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">"training_samples.parquet"</span><span class="p">)</span>
-<span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">)</span>
+<span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">train_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 
 <span class="c1"># Train model</span>
-<span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
 <span class="c1"># Evaluate the model on a *labeled* evaluation set</span>
 <span class="n">accuracy</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">eval_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">)</span>
+
+<span class="c1"># Get summary of the active learning cycle</span>
+<span class="n">al</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 
 <span class="c1"># Get predictions from an *unlabeled* set</span>
 <span class="n">pred_df</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
 
 <span class="c1"># Sample low confidence predictions from unlabeled set</span>
-<span class="n">uncertain_df</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">sample_uncertain</span><span class="p">(</span><span class="n">pred_df</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">sample_combination</span><span class="p">(</span>
+    <span class="n">pred_df</span><span class="p">,</span>
+    <span class="n">num_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">combination</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"least-confidence"</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+        <span class="s2">"ratio-of-confidence"</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s2">"entropy"</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s2">"model-based-outlier"</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="s2">"random"</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">)</span>
 
 <span class="c1"># Launch a Gradio UI to label the low confidence samples, save the labeled samples to a file</span>
-<span class="n">al</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">uncertain_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"uncertain"</span><span class="p">)</span>
+<span class="n">al</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"combination.parquet"</span><span class="p">)</span>
 </code></pre></div>
 <p><img alt="Gradio UI" src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/labeling_ui.png"/></p>
 <p>In the UI, you can optionally run zero-shot inference on the image. This will use a VLM to predict the label of the image. There are a dozen VLM models as supported in the <a href="https://github.com/dnth/x.infer">x.infer project</a>.</p>
