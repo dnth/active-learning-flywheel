@@ -82,29 +82,44 @@ As a toy example I created the above 3 datasets from the imagenette dataset.
 
 ```python
 from active_vision import ActiveLearner
-import pandas as pd
 
-# Create an active learner instance with a model
-al = ActiveLearner("resnet18")
+# Create an active learner instance
+al = ActiveLearner(name="cycle-1")
+
+# Load model
+al.load_model(model="resnet18", pretrained=True)
 
 # Load dataset 
 train_df = pd.read_parquet("training_samples.parquet")
-al.load_dataset(df, filepath_col="filepath", label_col="label")
+al.load_dataset(train_df, filepath_col="filepath", label_col="label", batch_size=8)
 
 # Train model
-al.train(epochs=3, lr=1e-3)
+al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 
 # Evaluate the model on a *labeled* evaluation set
 accuracy = al.evaluate(eval_df, filepath_col="filepath", label_col="label")
+
+# Get summary of the active learning cycle
+al.summary()
 
 # Get predictions from an *unlabeled* set
 pred_df = al.predict(filepaths)
 
 # Sample low confidence predictions from unlabeled set
-uncertain_df = al.sample_uncertain(pred_df, num_samples=10)
+samples = al.sample_combination(
+    pred_df,
+    num_samples=50,
+    combination={
+        "least-confidence": 0.4,
+        "ratio-of-confidence": 0.2,
+        "entropy": 0.2,
+        "model-based-outlier": 0.1,
+        "random": 0.1,
+    },
+)
 
 # Launch a Gradio UI to label the low confidence samples, save the labeled samples to a file
-al.label(uncertain_df, output_filename="uncertain")
+al.label(samples, output_filename="combination.parquet")
 ```
 
 ![Gradio UI](https://raw.githubusercontent.com/dnth/active-vision/main/assets/labeling_ui.png)
