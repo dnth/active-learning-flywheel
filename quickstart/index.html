@@ -421,6 +421,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#download-the-dataset" class="md-nav__link">
     <span class="md-ellipsis">
       Download the dataset
@@ -550,12 +559,14 @@
 <li>Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</li>
 </ul>
 <p>We will use the Imagenette dataset as a working example in this notebook.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>!pip install active-vision</p>
 <h2 id="download-the-dataset">Download the dataset<a class="headerlink" href="#download-the-dataset" title="Permanent link">&para;</a></h2>
 <p>First, lets download the dataset and extract it.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># !wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz</span>
-<span class="c1"># !tar -xvzf imagenette2.tgz</span>
-<span class="c1"># !mv imagenette2 data/imagenette</span>
-<span class="c1"># !rm imagenette2.tgz</span>
+<div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">s3</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">fast</span><span class="o">-</span><span class="n">ai</span><span class="o">-</span><span class="n">imageclas</span><span class="o">/</span><span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
+<span class="err">!</span><span class="n">tar</span> <span class="o">-</span><span class="n">xvzf</span> <span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
+<span class="err">!</span><span class="n">mv</span> <span class="n">imagenette2</span> <span class="n">data</span><span class="o">/</span><span class="n">imagenette</span>
+<span class="err">!</span><span class="n">rm</span> <span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
 </code></pre></div>
 <h2 id="load-the-dataset">Load the dataset<a class="headerlink" href="#load-the-dataset" title="Permanent link">&para;</a></h2>
 <p><code>active-vision</code> currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: <code>filepath</code> and <code>label</code>.</p>
@@ -1058,7 +1069,7 @@ Name: count, dtype: int64
 <p>Let's inspect one batch of the train set.</p>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
 </code></pre></div>
-<p><img alt="png" src="../quickstart_files/quickstart_25_0.png" /></p>
+<p><img alt="png" src="../quickstart_files/quickstart_27_0.png" /></p>
 <p>You can inspect the train and validation sets too.</p>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train_set</span>
 </code></pre></div>
@@ -1303,7 +1314,7 @@ Name: count, dtype: int64
 
 <div class="highlight"><pre><span></span><code>2025-02-01 22:45:41.335 | INFO     | active_vision.core:lr_find:196 - Optimal learning rate: 0.0030199517495930195
 </code></pre></div>
-<p><img alt="png" src="../quickstart_files/quickstart_30_4.png" /></p>
+<p><img alt="png" src="../quickstart_files/quickstart_32_4.png" /></p>
 <p>Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.</p>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </code></pre></div>
@@ -1362,7 +1373,7 @@ Name: count, dtype: int64
   </tbody>
 </table>
 
-<p><img alt="png" src="../quickstart_files/quickstart_32_3.png" /></p>
+<p><img alt="png" src="../quickstart_files/quickstart_34_3.png" /></p>
 <style>
     /* Turns off some styling */
     progress {
@@ -1463,7 +1474,7 @@ Name: count, dtype: int64
   </tbody>
 </table>
 
-<p><img alt="png" src="../quickstart_files/quickstart_32_6.png" /></p>
+<p><img alt="png" src="../quickstart_files/quickstart_34_6.png" /></p>
 <h2 id="evaluate">Evaluate<a class="headerlink" href="#evaluate" title="Permanent link">&para;</a></h2>
 <p>Now that we have a trained model, we can evaluate it on the evaluation set.</p>
 <div class="highlight"><pre><span></span><code><span class="n">evaluation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
