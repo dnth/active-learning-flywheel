@@ -30,5 +30,8 @@ jobs:
                   jupyter nbconvert nbs/imagenette/quickstart.ipynb --to markdown --output-dir docs/
                   sed -i 's/\x1b\[[0-9;]*m//g' docs/quickstart.md
 
+                  jupyter nbconvert nbs/imagenette/preparing_data.ipynb --to markdown --output-dir docs/
+                  sed -i 's/\x1b\[[0-9;]*m//g' docs/preparing_data.md
+
             - name: Deploy
               run: mkdocs gh-deploy --force
