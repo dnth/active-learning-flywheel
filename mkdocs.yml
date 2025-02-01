@@ -79,10 +79,11 @@ markdown_extensions:
 nav:
     - Home: index.md
     # - Installation: installation.md
-    - Quickstart: quickstart.md
-    - Preparing Data: preparing_data.md
-    - Active Learning Cycle: active_learning.md
-    - Training the Final Model: train.md
+    # - Quickstart: quickstart.md
+    - Getting Started:
+        - Preparing Data: preparing_data.md
+        - Active Learning Cycle: active_learning.md
+        - Training the Final Model: train.md
     # - Contributing: contributing.md
     # - FAQ: faq.md
     # - Changelog: changelog.md
