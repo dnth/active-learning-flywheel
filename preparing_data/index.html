@@ -568,6 +568,13 @@
 
 <h2 id="download-the-dataset">Download the dataset<a class="headerlink" href="#download-the-dataset" title="Permanent link">&para;</a></h2>
 <p>In this example, we will use the Imagenette dataset to demonstrate how to prepare data for active learning.</p>
+<p>Before we start, we need to prepare 3 sets of data:</p>
+<ul>
+<li>Initial samples: A dataset of labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.</li>
+<li>Unlabeled samples: A dataset of unlabeled images. We will continuously sample from this set using active learning strategies.</li>
+<li>Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</li>
+</ul>
+<p>We will use the Imagenette dataset as a working example in this notebook.</p>
 <p>First, lets download the dataset and extract it.</p>
 <div class="highlight"><pre><span></span><code><span class="err">!</span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">s3</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">fast</span><span class="o">-</span><span class="n">ai</span><span class="o">-</span><span class="n">imageclas</span><span class="o">/</span><span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>
 <span class="err">!</span><span class="n">tar</span> <span class="o">-</span><span class="n">xvzf</span> <span class="n">imagenette2</span><span class="o">.</span><span class="n">tgz</span>

@@ -665,13 +665,6 @@
 <li>Understand how to use Active Vision to train a model</li>
 <li>Understand how to use Active Vision to iteratively improve your dataset</li>
 </ul>
-<p>Before we start, we need to prepare 3 sets of data:</p>
-<ul>
-<li>Initial samples: A dataset of labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.</li>
-<li>Unlabeled samples: A dataset of unlabeled images. We will continuously sample from this set using active learning strategies.</li>
-<li>Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</li>
-</ul>
-<p>We will use the Imagenette dataset as a working example in this notebook.</p>
 <h2 id="create-an-activelearner">Create an ActiveLearner<a class="headerlink" href="#create-an-activelearner" title="Permanent link">&para;</a></h2>
 <p>Now that we have an initial dataset, we can load it into an <code>ActiveLearner</code> object with a model.</p>
 <p>Any fastai and timm models are supported. For simplicity, we will use a <code>resnet18</code> model.</p>
