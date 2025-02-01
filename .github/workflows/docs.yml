@@ -27,6 +27,7 @@ jobs:
             - name: Generate docs
               run: |
                   cp README.md docs/index.md
+
                   jupyter nbconvert nbs/imagenette/quickstart.ipynb --to markdown --output-dir docs/
                   sed -i 's/\x1b\[[0-9;]*m//g' docs/quickstart.md
 
@@ -35,6 +36,9 @@ jobs:
 
                   jupyter nbconvert nbs/imagenette/active_learning.ipynb --to markdown --output-dir docs/
                   sed -i 's/\x1b\[[0-9;]*m//g' docs/active_learning.md
+
+                  jupyter nbconvert nbs/imagenette/train.ipynb --to markdown --output-dir docs/
+                  sed -i 's/\x1b\[[0-9;]*m//g' docs/train.md
 
             - name: Deploy
               run: mkdocs gh-deploy --force
