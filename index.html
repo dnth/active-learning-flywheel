@@ -545,8 +545,8 @@ Once the virtual environment is created, you can install the package using pip.<
 <p><img alt="Zero-Shot Inference" src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/zero_shot_ui.png"/></p>
 <p>Once complete, the labeled samples will be save into a new df.
 We can now add the newly labeled data to the training set.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Add newly labeled data to training set and save as a new file active_labeled</span>
-<span class="n">al</span><span class="o">.</span><span class="n">add_to_train_set</span><span class="p">(</span><span class="n">labeled_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"active_labeled"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># Add newly labeled data to the dataset</span>
+<span class="n">al</span><span class="o">.</span><span class="n">add_to_dataset</span><span class="p">(</span><span class="n">labeled_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"active_labeled.parquet"</span><span class="p">)</span>
 </code></pre></div>
 <p>Repeat the process until the model is good enough. Use the dataset to train a larger model and deploy.</p>
 <blockquote>
