@@ -35,6 +35,7 @@ dev = [
 ]
 
 docs = [
+    "jupyter",
     "ipykernel",
     "livereload",
     "nbconvert",
