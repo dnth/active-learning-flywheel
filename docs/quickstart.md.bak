@@ -548,7 +548,7 @@ al = ActiveLearner(name="cycle-1")
 al.load_model(model="resnet18", pretrained=True, device="mps")
 ```
 
-    2025-02-01 22:44:09.797 | INFO     | active_vision.core:load_model:70 - Loading a pretrained timm model `resnet18` on `mps`
+    [32m2025-02-01 22:44:09.797[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_model[0m:[36m70[0m - [1mLoading a pretrained timm model `resnet18` on `mps`[0m
 
 
 We can load the initial samples into the `ActiveLearner` object.
@@ -622,10 +622,10 @@ al.load_dataset(
 )
 ```
 
-    2025-02-01 22:44:50.385 | INFO     | active_vision.core:load_dataset:119 - Loading dataset from `filepath` and `label` columns
-    2025-02-01 22:44:50.407 | INFO     | active_vision.core:load_dataset:153 - Creating new learner
-    2025-02-01 22:44:50.872 | INFO     | active_vision.core:_optimize_learner:97 - Enabled mixed precision training
-    2025-02-01 22:44:50.873 | INFO     | active_vision.core:_finalize_setup:105 - Done. Ready to train.
+    [32m2025-02-01 22:44:50.385[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m119[0m - [1mLoading dataset from `filepath` and `label` columns[0m
+    [32m2025-02-01 22:44:50.407[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m153[0m - [1mCreating new learner[0m
+    [32m2025-02-01 22:44:50.872[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_optimize_learner[0m:[36m97[0m - [1mEnabled mixed precision training[0m
+    [32m2025-02-01 22:44:50.873[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_finalize_setup[0m:[36m105[0m - [1mDone. Ready to train.[0m
 
 
 Let's inspect one batch of the train set.
@@ -884,7 +884,7 @@ But first, let's check the optimal learning rate for the model.
 al.lr_find()
 ```
 
-    2025-02-01 22:45:36.137 | INFO     | active_vision.core:lr_find:194 - Finding optimal learning rate
+    [32m2025-02-01 22:45:36.137[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m194[0m - [1mFinding optimal learning rate[0m
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
       warnings.warn(
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
@@ -915,7 +915,7 @@ al.lr_find()
 
 
 
-    2025-02-01 22:45:41.335 | INFO     | active_vision.core:lr_find:196 - Optimal learning rate: 0.0030199517495930195
+    [32m2025-02-01 22:45:41.335[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m196[0m - [1mOptimal learning rate: 0.0030199517495930195[0m
 
 
 
@@ -931,9 +931,9 @@ Not let's use the optimal learning rate to train the model end-to-end for 3 epoc
 al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 ```
 
-    2025-02-01 22:46:00.935 | INFO     | active_vision.core:train:207 - Training head for 3 epochs
-    2025-02-01 22:46:00.936 | INFO     | active_vision.core:train:208 - Training model end-to-end for 10 epochs
-    2025-02-01 22:46:00.936 | INFO     | active_vision.core:train:209 - Learning rate: 0.005 with one-cycle learning rate scheduler
+    [32m2025-02-01 22:46:00.935[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m207[0m - [1mTraining head for 3 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m208[0m - [1mTraining model end-to-end for 10 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m209[0m - [1mLearning rate: 0.005 with one-cycle learning rate scheduler[0m
 
 
 
@@ -1244,7 +1244,7 @@ al.evaluate(evaluation_df, filepath_col="filepath", label_col="label")
 
 
 
-    2025-02-01 22:46:36.026 | INFO     | active_vision.core:evaluate:285 - Accuracy: 88.69%
+    [32m2025-02-01 22:46:36.026[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mevaluate[0m:[36m285[0m - [1mAccuracy: 88.69%[0m
 
 
 
@@ -1263,7 +1263,7 @@ Let's save the summary of the cycle.
 al.summary()
 ```
 
-    2025-02-01 22:46:58.694 | INFO     | active_vision.core:summary:578 - Saved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet
+    [32m2025-02-01 22:46:58.694[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msummary[0m:[36m578[0m - [1mSaved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet[0m
 
 
 
@@ -1352,7 +1352,7 @@ pred_df = al.predict(filepaths, batch_size=128)
 pred_df
 ```
 
-    2025-02-01 22:48:06.456 | INFO     | active_vision.core:predict:216 - Running inference on 9369 samples
+    [32m2025-02-01 22:48:06.456[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 9369 samples[0m
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
       warnings.warn(
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
@@ -1542,16 +1542,16 @@ samples = al.sample_combination(
 samples
 ```
 
-    2025-02-01 22:48:54.961 | INFO     | active_vision.core:sample_combination:498 - Using combination sampling to get 50 samples
-    2025-02-01 22:48:54.965 | INFO     | active_vision.core:sample_uncertain:305 - Using least confidence strategy to get top 20 samples
-    2025-02-01 22:48:54.981 | INFO     | active_vision.core:sample_uncertain:328 - Using ratio of confidence strategy to get top 10 samples
-    2025-02-01 22:48:55.030 | INFO     | active_vision.core:sample_uncertain:342 - Using entropy strategy to get top 10 samples
+    [32m2025-02-01 22:48:54.961[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_combination[0m:[36m498[0m - [1mUsing combination sampling to get 50 samples[0m
+    [32m2025-02-01 22:48:54.965[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m305[0m - [1mUsing least confidence strategy to get top 20 samples[0m
+    [32m2025-02-01 22:48:54.981[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m328[0m - [1mUsing ratio of confidence strategy to get top 10 samples[0m
+    [32m2025-02-01 22:48:55.030[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m342[0m - [1mUsing entropy strategy to get top 10 samples[0m
     /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: divide by zero encountered in log2
       df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
     /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: invalid value encountered in multiply
       df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
-    2025-02-01 22:48:55.067 | INFO     | active_vision.core:sample_diverse:388 - Using model-based outlier strategy to get top 5 samples
-    2025-02-01 22:48:55.067 | INFO     | active_vision.core:predict:216 - Running inference on 20 samples
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_diverse[0m:[36m388[0m - [1mUsing model-based outlier strategy to get top 5 samples[0m
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 20 samples[0m
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
       warnings.warn(
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
@@ -1582,7 +1582,7 @@ samples
 
 
 
-    2025-02-01 22:48:55.347 | INFO     | active_vision.core:sample_random:460 - Sampling 5 random samples
+    [32m2025-02-01 22:48:55.347[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_random[0m:[36m460[0m - [1mSampling 5 random samples[0m
 
 
 
@@ -2182,7 +2182,7 @@ Let's label the samples and save them to a parquet file named `combination.parqu
 al.label(samples, output_filename="combination.parquet")
 ```
 
-    2025-02-01 22:50:11.038 | INFO     | active_vision.core:label:612 - Launching labeling interface for 50 samples
+    [32m2025-02-01 22:50:11.038[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlabel[0m:[36m612[0m - [1mLaunching labeling interface for 50 samples[0m
 
 
     * Running on local URL:  http://127.0.0.1:7860
@@ -2494,8 +2494,8 @@ Now that we have labeled the samples, we can add them to the train set and save 
 al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")
 ```
 
-    2025-02-01 22:55:13.929 | INFO     | active_vision.core:add_to_dataset:1060 - Adding 49 samples to dataset
-    2025-02-01 22:55:13.932 | INFO     | active_vision.core:add_to_dataset:1068 - Saved dataset to active_labeled.parquet
+    [32m2025-02-01 22:55:13.929[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1060[0m - [1mAdding 49 samples to dataset[0m
+    [32m2025-02-01 22:55:13.932[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1068[0m - [1mSaved dataset to active_labeled.parquet[0m
 
 
 ## Repeat

@@ -18,522 +18,6 @@ Before we start, we need to prepare 3 sets of data:
 We will use the Imagenette dataset as a working example in this notebook.
 
 
-## Download the dataset
-
-First, lets download the dataset and extract it.
-
-
-```python
-# !wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz
-# !tar -xvzf imagenette2.tgz
-# !mv imagenette2 data/imagenette
-# !rm imagenette2.tgz
-```
-
-## Load the dataset
-
-`active-vision` currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: `filepath` and `label`.
-
-
-```python
-from fastai.vision.all import get_image_files
-
-path = "data/imagenette/train"
-image_files = get_image_files(path)
-len(image_files)
-```
-
-
-
-
-    9469
-
-
-
-
-```python
-lbl_dict = {
-    "n01440764": "tench",
-    "n02102040": "English springer",
-    "n02979186": "cassette player",
-    "n03000684": "chain saw",
-    "n03028079": "church",
-    "n03394916": "French horn",
-    "n03417042": "garbage truck",
-    "n03425413": "gas pump",
-    "n03445777": "golf ball",
-    "n03888257": "parachute",
-}
-
-```
-
-
-```python
-import pandas as pd
-
-# Create a dataframe with the filepath and label from parent directory
-labels = [str(path.parts[-2]) for path in image_files]
-
-# Map the labels to the label dictionary
-labels = [lbl_dict[lbl] for lbl in labels]
-
-df = pd.DataFrame({"filepath": [str(path) for path in image_files], "label": labels})
-
-df
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/ILSVRC2012_val_00046669.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_58454.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_32588.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_33663.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_27948.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>9464</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9465</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9466</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9467</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9468</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>9469 rows × 2 columns</p>
-</div>
-
-
-
-As an initial step, we will randomly sample 10 samples from each class.
-
-
-```python
-initial_samples = (
-    df.groupby("label")
-    .apply(lambda x: x.sample(n=10, random_state=316))
-    .reset_index(drop=True)
-)
-
-initial_samples
-```
-
-    /var/folders/9y/5mpk58851fq38f8ljx2svvnm0000gn/T/ipykernel_22109/414664958.py:3: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-      .apply(lambda x: x.sample(n=10, random_state=316))
-
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n02102040/n02102040_2788.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n02102040/n02102040_3759.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n02102040/n02102040_1916.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n02102040/n02102040_6147.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n02102040/n02102040_403.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>95</th>
-      <td>data/imagenette/train/n01440764/n01440764_10043.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>96</th>
-      <td>data/imagenette/train/n01440764/n01440764_31535.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>97</th>
-      <td>data/imagenette/train/n01440764/n01440764_12848.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>98</th>
-      <td>data/imagenette/train/n01440764/n01440764_3997.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>99</th>
-      <td>data/imagenette/train/n01440764/n01440764_29788.JPEG</td>
-      <td>tench</td>
-    </tr>
-  </tbody>
-</table>
-<p>100 rows × 2 columns</p>
-</div>
-
-
-
-Let's check the distribution of the labels.
-
-
-```python
-initial_samples["label"].value_counts()
-```
-
-
-
-
-    label
-    English springer    10
-    French horn         10
-    cassette player     10
-    chain saw           10
-    church              10
-    garbage truck       10
-    gas pump            10
-    golf ball           10
-    parachute           10
-    tench               10
-    Name: count, dtype: int64
-
-
-
-And save it to a parquet file.
-
-
-```python
-initial_samples.to_parquet("initial_samples.parquet")
-```
-
-
-```python
-# Get the remaining samples by using pd.Index.difference
-remaining_samples = df[~df.index.isin(initial_samples.index)].reset_index(drop=True)
-remaining_samples
-
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/n03394916_4437.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_42413.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_38808.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_24128.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_11289.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>9364</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9365</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9366</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9367</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9368</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>9369 rows × 2 columns</p>
-</div>
-
-
-
-
-```python
-remaining_samples.to_parquet("unlabeled_samples.parquet")
-```
-
-Now let's create the evaluation samples which will be used to evaluate the performance of the model. We will use the validation set from the Imagenette dataset as the evaluation set.
-
-
-
-
-```python
-path = "data/imagenette/val"
-image_files = get_image_files(path)
-len(image_files)
-
-```
-
-
-
-
-    3925
-
-
-
-
-```python
-labels = [str(path.parts[-2]) for path in image_files]
-
-# Map the labels to the label dictionary
-labels = [lbl_dict[lbl] for lbl in labels]
-
-evaluation_samples = pd.DataFrame(
-    {"filepath": [str(path) for path in image_files], "label": labels}
-)
-
-evaluation_samples
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/val/n03394916/n03394916_32422.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/val/n03394916/n03394916_69132.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/val/n03394916/n03394916_33771.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/val/n03394916/n03394916_29940.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/val/n03394916/ILSVRC2012_val_00033682.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>3920</th>
-      <td>data/imagenette/val/n02979186/n02979186_27392.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3921</th>
-      <td>data/imagenette/val/n02979186/n02979186_2742.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3922</th>
-      <td>data/imagenette/val/n02979186/n02979186_2312.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3923</th>
-      <td>data/imagenette/val/n02979186/n02979186_12822.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3924</th>
-      <td>data/imagenette/val/n02979186/ILSVRC2012_val_00042982.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>3925 rows × 2 columns</p>
-</div>
-
-
-
-
-```python
-evaluation_samples.to_parquet("evaluation_samples.parquet")
-```
-
 ## Create an ActiveLearner
 
 Now that we have an initial dataset, we can load it into an `ActiveLearner` object with a model.
@@ -548,7 +32,7 @@ al = ActiveLearner(name="cycle-1")
 al.load_model(model="resnet18", pretrained=True, device="mps")
 ```
 
-    2025-02-01 22:44:09.797 | INFO     | active_vision.core:load_model:70 - Loading a pretrained timm model `resnet18` on `mps`
+    [32m2025-02-01 22:44:09.797[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_model[0m:[36m70[0m - [1mLoading a pretrained timm model `resnet18` on `mps`[0m
 
 
 We can load the initial samples into the `ActiveLearner` object.
@@ -622,10 +106,10 @@ al.load_dataset(
 )
 ```
 
-    2025-02-01 22:44:50.385 | INFO     | active_vision.core:load_dataset:119 - Loading dataset from `filepath` and `label` columns
-    2025-02-01 22:44:50.407 | INFO     | active_vision.core:load_dataset:153 - Creating new learner
-    2025-02-01 22:44:50.872 | INFO     | active_vision.core:_optimize_learner:97 - Enabled mixed precision training
-    2025-02-01 22:44:50.873 | INFO     | active_vision.core:_finalize_setup:105 - Done. Ready to train.
+    [32m2025-02-01 22:44:50.385[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m119[0m - [1mLoading dataset from `filepath` and `label` columns[0m
+    [32m2025-02-01 22:44:50.407[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m153[0m - [1mCreating new learner[0m
+    [32m2025-02-01 22:44:50.872[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_optimize_learner[0m:[36m97[0m - [1mEnabled mixed precision training[0m
+    [32m2025-02-01 22:44:50.873[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_finalize_setup[0m:[36m105[0m - [1mDone. Ready to train.[0m
 
 
 Let's inspect one batch of the train set.
@@ -637,7 +121,7 @@ al.show_batch()
 
 
     
-![png](quickstart_files/quickstart_25_0.png)
+![png](active_learning_files/active_learning_7_0.png)
     
 
 
@@ -884,7 +368,7 @@ But first, let's check the optimal learning rate for the model.
 al.lr_find()
 ```
 
-    2025-02-01 22:45:36.137 | INFO     | active_vision.core:lr_find:194 - Finding optimal learning rate
+    [32m2025-02-01 22:45:36.137[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m194[0m - [1mFinding optimal learning rate[0m
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
       warnings.warn(
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
@@ -915,12 +399,12 @@ al.lr_find()
 
 
 
-    2025-02-01 22:45:41.335 | INFO     | active_vision.core:lr_find:196 - Optimal learning rate: 0.0030199517495930195
+    [32m2025-02-01 22:45:41.335[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m196[0m - [1mOptimal learning rate: 0.0030199517495930195[0m
 
 
 
     
-![png](quickstart_files/quickstart_30_4.png)
+![png](active_learning_files/active_learning_12_4.png)
     
 
 
@@ -931,9 +415,9 @@ Not let's use the optimal learning rate to train the model end-to-end for 3 epoc
 al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 ```
 
-    2025-02-01 22:46:00.935 | INFO     | active_vision.core:train:207 - Training head for 3 epochs
-    2025-02-01 22:46:00.936 | INFO     | active_vision.core:train:208 - Training model end-to-end for 10 epochs
-    2025-02-01 22:46:00.936 | INFO     | active_vision.core:train:209 - Learning rate: 0.005 with one-cycle learning rate scheduler
+    [32m2025-02-01 22:46:00.935[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m207[0m - [1mTraining head for 3 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m208[0m - [1mTraining model end-to-end for 10 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m209[0m - [1mLearning rate: 0.005 with one-cycle learning rate scheduler[0m
 
 
 
@@ -995,7 +479,7 @@ al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 
 
     
-![png](quickstart_files/quickstart_32_3.png)
+![png](active_learning_files/active_learning_14_3.png)
     
 
 
@@ -1107,7 +591,7 @@ al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 
 
     
-![png](quickstart_files/quickstart_32_6.png)
+![png](active_learning_files/active_learning_14_6.png)
     
 
 
@@ -1244,7 +728,7 @@ al.evaluate(evaluation_df, filepath_col="filepath", label_col="label")
 
 
 
-    2025-02-01 22:46:36.026 | INFO     | active_vision.core:evaluate:285 - Accuracy: 88.69%
+    [32m2025-02-01 22:46:36.026[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mevaluate[0m:[36m285[0m - [1mAccuracy: 88.69%[0m
 
 
 
@@ -1263,7 +747,7 @@ Let's save the summary of the cycle.
 al.summary()
 ```
 
-    2025-02-01 22:46:58.694 | INFO     | active_vision.core:summary:578 - Saved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet
+    [32m2025-02-01 22:46:58.694[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msummary[0m:[36m578[0m - [1mSaved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet[0m
 
 
 
@@ -1352,7 +836,7 @@ pred_df = al.predict(filepaths, batch_size=128)
 pred_df
 ```
 
-    2025-02-01 22:48:06.456 | INFO     | active_vision.core:predict:216 - Running inference on 9369 samples
+    [32m2025-02-01 22:48:06.456[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 9369 samples[0m
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
       warnings.warn(
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
@@ -1542,16 +1026,16 @@ samples = al.sample_combination(
 samples
 ```
 
-    2025-02-01 22:48:54.961 | INFO     | active_vision.core:sample_combination:498 - Using combination sampling to get 50 samples
-    2025-02-01 22:48:54.965 | INFO     | active_vision.core:sample_uncertain:305 - Using least confidence strategy to get top 20 samples
-    2025-02-01 22:48:54.981 | INFO     | active_vision.core:sample_uncertain:328 - Using ratio of confidence strategy to get top 10 samples
-    2025-02-01 22:48:55.030 | INFO     | active_vision.core:sample_uncertain:342 - Using entropy strategy to get top 10 samples
+    [32m2025-02-01 22:48:54.961[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_combination[0m:[36m498[0m - [1mUsing combination sampling to get 50 samples[0m
+    [32m2025-02-01 22:48:54.965[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m305[0m - [1mUsing least confidence strategy to get top 20 samples[0m
+    [32m2025-02-01 22:48:54.981[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m328[0m - [1mUsing ratio of confidence strategy to get top 10 samples[0m
+    [32m2025-02-01 22:48:55.030[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m342[0m - [1mUsing entropy strategy to get top 10 samples[0m
     /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: divide by zero encountered in log2
       df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
     /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: invalid value encountered in multiply
       df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
-    2025-02-01 22:48:55.067 | INFO     | active_vision.core:sample_diverse:388 - Using model-based outlier strategy to get top 5 samples
-    2025-02-01 22:48:55.067 | INFO     | active_vision.core:predict:216 - Running inference on 20 samples
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_diverse[0m:[36m388[0m - [1mUsing model-based outlier strategy to get top 5 samples[0m
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 20 samples[0m
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
       warnings.warn(
     /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
@@ -1582,7 +1066,7 @@ samples
 
 
 
-    2025-02-01 22:48:55.347 | INFO     | active_vision.core:sample_random:460 - Sampling 5 random samples
+    [32m2025-02-01 22:48:55.347[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_random[0m:[36m460[0m - [1mSampling 5 random samples[0m
 
 
 
@@ -2182,7 +1666,7 @@ Let's label the samples and save them to a parquet file named `combination.parqu
 al.label(samples, output_filename="combination.parquet")
 ```
 
-    2025-02-01 22:50:11.038 | INFO     | active_vision.core:label:612 - Launching labeling interface for 50 samples
+    [32m2025-02-01 22:50:11.038[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlabel[0m:[36m612[0m - [1mLaunching labeling interface for 50 samples[0m
 
 
     * Running on local URL:  http://127.0.0.1:7860
@@ -2194,7 +1678,7 @@ al.label(samples, output_filename="combination.parquet")
 <div><iframe src="http://127.0.0.1:7860/" width="100%" height="1000" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>
 
 
-![image-2.png](quickstart_files/image-2.png)
+![image-2.png](active_learning_files/image-2.png)
 
 The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.
 
@@ -2494,12 +1978,177 @@ Now that we have labeled the samples, we can add them to the train set and save 
 al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")
 ```
 
-    2025-02-01 22:55:13.929 | INFO     | active_vision.core:add_to_dataset:1060 - Adding 49 samples to dataset
-    2025-02-01 22:55:13.932 | INFO     | active_vision.core:add_to_dataset:1068 - Saved dataset to active_labeled.parquet
+    [32m2025-02-01 22:55:13.929[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1060[0m - [1mAdding 49 samples to dataset[0m
+    [32m2025-02-01 22:55:13.932[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1068[0m - [1mSaved dataset to active_labeled.parquet[0m
 
 
 ## Repeat
 
 Congratulations! You have completed the first cycle of active learning. We now have a small dataset and a trained model. Now whats left is to repeat the process of predicting, sampling, labeling, and adding to the train set until we have a good model.
+
+## Tracking Progress
+
+You can track the progress of the active learning process by inspecting the .parquet files saved when running the `al.summary()` function.
+
+In this example, I ran 4 cycles of active learning which resulted in the following files:
+
+- `cycle-1_20250201_224658_acc_88.69%_n_100.parquet`
+- `cycle-2_20250201_225913_acc_92.18%_n_149.parquet`
+- `cycle-3_20250201_232340_acc_93.45%_n_195.parquet`
+- `cycle-4_20250201_233055_acc_94.52%_n_243.parquet`
+
+The name of the file contains the cycle name, the date, the accuracy, and the number of labeled samples.
+
+
+
+```python
+
+import glob
+import pandas as pd
+
+# Get all parquet files with 'cycle' in the name
+cycle_files = glob.glob("cycle-*.parquet")
+
+# Read and concatenate all cycle files
+all_cycles_df = pd.concat([pd.read_parquet(f) for f in cycle_files], ignore_index=True)
+
+all_cycles_df = all_cycles_df.sort_values(by="name", ascending=True)
+all_cycles_df
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>accuracy</th>
+      <th>train_set_size</th>
+      <th>valid_set_size</th>
+      <th>dataset_size</th>
+      <th>num_classes</th>
+      <th>model</th>
+      <th>pretrained</th>
+      <th>loss_fn</th>
+      <th>device</th>
+      <th>seed</th>
+      <th>batch_size</th>
+      <th>image_size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>cycle-1</td>
+      <td>0.886879</td>
+      <td>80</td>
+      <td>20</td>
+      <td>100</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>cycle-2</td>
+      <td>0.921783</td>
+      <td>120</td>
+      <td>29</td>
+      <td>149</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cycle-3</td>
+      <td>0.934522</td>
+      <td>156</td>
+      <td>39</td>
+      <td>195</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cycle-4</td>
+      <td>0.945223</td>
+      <td>195</td>
+      <td>48</td>
+      <td>243</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=all_cycles_df, x='dataset_size', y='accuracy', marker='o')
+
+plt.title('Model Accuracy vs Dataset Size')
+plt.xlabel('Number of Images')
+plt.ylabel('Accuracy')
+
+plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
+
+plt.grid(True, linestyle='--', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+    
+![png](active_learning_files/active_learning_38_0.png)
+    
+
 
 

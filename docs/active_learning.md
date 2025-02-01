@@ -18,522 +18,6 @@ Before we start, we need to prepare 3 sets of data:
 We will use the Imagenette dataset as a working example in this notebook.
 
 
-## Download the dataset
-
-First, lets download the dataset and extract it.
-
-
-```python
-# !wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz
-# !tar -xvzf imagenette2.tgz
-# !mv imagenette2 data/imagenette
-# !rm imagenette2.tgz
-```
-
-## Load the dataset
-
-`active-vision` currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: `filepath` and `label`.
-
-
-```python
-from fastai.vision.all import get_image_files
-
-path = "data/imagenette/train"
-image_files = get_image_files(path)
-len(image_files)
-```
-
-
-
-
-    9469
-
-
-
-
-```python
-lbl_dict = {
-    "n01440764": "tench",
-    "n02102040": "English springer",
-    "n02979186": "cassette player",
-    "n03000684": "chain saw",
-    "n03028079": "church",
-    "n03394916": "French horn",
-    "n03417042": "garbage truck",
-    "n03425413": "gas pump",
-    "n03445777": "golf ball",
-    "n03888257": "parachute",
-}
-
-```
-
-
-```python
-import pandas as pd
-
-# Create a dataframe with the filepath and label from parent directory
-labels = [str(path.parts[-2]) for path in image_files]
-
-# Map the labels to the label dictionary
-labels = [lbl_dict[lbl] for lbl in labels]
-
-df = pd.DataFrame({"filepath": [str(path) for path in image_files], "label": labels})
-
-df
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/ILSVRC2012_val_00046669.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_58454.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_32588.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_33663.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_27948.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>9464</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9465</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9466</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9467</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9468</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>9469 rows × 2 columns</p>
-</div>
-
-
-
-As an initial step, we will randomly sample 10 samples from each class.
-
-
-```python
-initial_samples = (
-    df.groupby("label")
-    .apply(lambda x: x.sample(n=10, random_state=316))
-    .reset_index(drop=True)
-)
-
-initial_samples
-```
-
-    /var/folders/9y/5mpk58851fq38f8ljx2svvnm0000gn/T/ipykernel_22109/414664958.py:3: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-      .apply(lambda x: x.sample(n=10, random_state=316))
-
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n02102040/n02102040_2788.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n02102040/n02102040_3759.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n02102040/n02102040_1916.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n02102040/n02102040_6147.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n02102040/n02102040_403.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>95</th>
-      <td>data/imagenette/train/n01440764/n01440764_10043.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>96</th>
-      <td>data/imagenette/train/n01440764/n01440764_31535.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>97</th>
-      <td>data/imagenette/train/n01440764/n01440764_12848.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>98</th>
-      <td>data/imagenette/train/n01440764/n01440764_3997.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>99</th>
-      <td>data/imagenette/train/n01440764/n01440764_29788.JPEG</td>
-      <td>tench</td>
-    </tr>
-  </tbody>
-</table>
-<p>100 rows × 2 columns</p>
-</div>
-
-
-
-Let's check the distribution of the labels.
-
-
-```python
-initial_samples["label"].value_counts()
-```
-
-
-
-
-    label
-    English springer    10
-    French horn         10
-    cassette player     10
-    chain saw           10
-    church              10
-    garbage truck       10
-    gas pump            10
-    golf ball           10
-    parachute           10
-    tench               10
-    Name: count, dtype: int64
-
-
-
-And save it to a parquet file.
-
-
-```python
-initial_samples.to_parquet("initial_samples.parquet")
-```
-
-
-```python
-# Get the remaining samples by using pd.Index.difference
-remaining_samples = df[~df.index.isin(initial_samples.index)].reset_index(drop=True)
-remaining_samples
-
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/n03394916_4437.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_42413.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_38808.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_24128.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_11289.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>9364</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9365</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9366</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9367</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9368</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>9369 rows × 2 columns</p>
-</div>
-
-
-
-
-```python
-remaining_samples.to_parquet("unlabeled_samples.parquet")
-```
-
-Now let's create the evaluation samples which will be used to evaluate the performance of the model. We will use the validation set from the Imagenette dataset as the evaluation set.
-
-
-
-
-```python
-path = "data/imagenette/val"
-image_files = get_image_files(path)
-len(image_files)
-
-```
-
-
-
-
-    3925
-
-
-
-
-```python
-labels = [str(path.parts[-2]) for path in image_files]
-
-# Map the labels to the label dictionary
-labels = [lbl_dict[lbl] for lbl in labels]
-
-evaluation_samples = pd.DataFrame(
-    {"filepath": [str(path) for path in image_files], "label": labels}
-)
-
-evaluation_samples
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/val/n03394916/n03394916_32422.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/val/n03394916/n03394916_69132.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/val/n03394916/n03394916_33771.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/val/n03394916/n03394916_29940.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/val/n03394916/ILSVRC2012_val_00033682.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>3920</th>
-      <td>data/imagenette/val/n02979186/n02979186_27392.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3921</th>
-      <td>data/imagenette/val/n02979186/n02979186_2742.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3922</th>
-      <td>data/imagenette/val/n02979186/n02979186_2312.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3923</th>
-      <td>data/imagenette/val/n02979186/n02979186_12822.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3924</th>
-      <td>data/imagenette/val/n02979186/ILSVRC2012_val_00042982.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>3925 rows × 2 columns</p>
-</div>
-
-
-
-
-```python
-evaluation_samples.to_parquet("evaluation_samples.parquet")
-```
-
 ## Create an ActiveLearner
 
 Now that we have an initial dataset, we can load it into an `ActiveLearner` object with a model.
@@ -637,7 +121,7 @@ al.show_batch()
 
 
     
-![png](quickstart_files/quickstart_25_0.png)
+![png](active_learning_files/active_learning_7_0.png)
     
 
 
@@ -920,7 +404,7 @@ al.lr_find()
 
 
     
-![png](quickstart_files/quickstart_30_4.png)
+![png](active_learning_files/active_learning_12_4.png)
     
 
 
@@ -995,7 +479,7 @@ al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 
 
     
-![png](quickstart_files/quickstart_32_3.png)
+![png](active_learning_files/active_learning_14_3.png)
     
 
 
@@ -1107,7 +591,7 @@ al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
 
 
     
-![png](quickstart_files/quickstart_32_6.png)
+![png](active_learning_files/active_learning_14_6.png)
     
 
 
@@ -2194,7 +1678,7 @@ al.label(samples, output_filename="combination.parquet")
 <div><iframe src="http://127.0.0.1:7860/" width="100%" height="1000" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>
 
 
-![image-2.png](quickstart_files/image-2.png)
+![image-2.png](active_learning_files/image-2.png)
 
 The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.
 
@@ -2501,5 +1985,170 @@ al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")
 ## Repeat
 
 Congratulations! You have completed the first cycle of active learning. We now have a small dataset and a trained model. Now whats left is to repeat the process of predicting, sampling, labeling, and adding to the train set until we have a good model.
+
+## Tracking Progress
+
+You can track the progress of the active learning process by inspecting the .parquet files saved when running the `al.summary()` function.
+
+In this example, I ran 4 cycles of active learning which resulted in the following files:
+
+- `cycle-1_20250201_224658_acc_88.69%_n_100.parquet`
+- `cycle-2_20250201_225913_acc_92.18%_n_149.parquet`
+- `cycle-3_20250201_232340_acc_93.45%_n_195.parquet`
+- `cycle-4_20250201_233055_acc_94.52%_n_243.parquet`
+
+The name of the file contains the cycle name, the date, the accuracy, and the number of labeled samples.
+
+
+
+```python
+
+import glob
+import pandas as pd
+
+# Get all parquet files with 'cycle' in the name
+cycle_files = glob.glob("cycle-*.parquet")
+
+# Read and concatenate all cycle files
+all_cycles_df = pd.concat([pd.read_parquet(f) for f in cycle_files], ignore_index=True)
+
+all_cycles_df = all_cycles_df.sort_values(by="name", ascending=True)
+all_cycles_df
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>accuracy</th>
+      <th>train_set_size</th>
+      <th>valid_set_size</th>
+      <th>dataset_size</th>
+      <th>num_classes</th>
+      <th>model</th>
+      <th>pretrained</th>
+      <th>loss_fn</th>
+      <th>device</th>
+      <th>seed</th>
+      <th>batch_size</th>
+      <th>image_size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>cycle-1</td>
+      <td>0.886879</td>
+      <td>80</td>
+      <td>20</td>
+      <td>100</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>cycle-2</td>
+      <td>0.921783</td>
+      <td>120</td>
+      <td>29</td>
+      <td>149</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cycle-3</td>
+      <td>0.934522</td>
+      <td>156</td>
+      <td>39</td>
+      <td>195</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cycle-4</td>
+      <td>0.945223</td>
+      <td>195</td>
+      <td>48</td>
+      <td>243</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=all_cycles_df, x='dataset_size', y='accuracy', marker='o')
+
+plt.title('Model Accuracy vs Dataset Size')
+plt.xlabel('Number of Images')
+plt.ylabel('Accuracy')
+
+plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
+
+plt.grid(True, linestyle='--', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+    
+![png](active_learning_files/active_learning_38_0.png)
+    
+
 
 
