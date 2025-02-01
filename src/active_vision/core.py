@@ -545,7 +545,7 @@ class ActiveLearner:
 
         return pd.concat(sampled_dfs, ignore_index=True)
 
-    def summary(self, filename: str, show: bool = True):
+    def summary(self, filename: str = None, show: bool = True):
         results_df = pd.DataFrame(
             {
                 "name": [self.name],
@@ -563,8 +563,17 @@ class ActiveLearner:
                 "image_size": [self.image_size],
             }
         )
-        if not filename.endswith(".parquet"):
+
+        if filename is None:
+            # Generate filename with timestamp, accuracy and dataset size
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            accuracy_str = f"{self.eval_accuracy:.2%}" if self.eval_accuracy is not None else "no_eval"
+            dataset_size = len(self.train_set) + len(self.valid_set)
+            filename = f"{self.name}_{timestamp}_acc_{accuracy_str}_n_{dataset_size}.parquet"
+        elif not filename.endswith(".parquet"):
             filename = f"{filename}.parquet"
+
         results_df.to_parquet(filename)
         logger.info(f"Saved results to {filename}")
         if show:
