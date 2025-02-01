@@ -524,7 +524,7 @@ Once the virtual environment is created, you can install the package using pip.<
 <span class="c1"># Get predictions from an *unlabeled* set</span>
 <span class="n">pred_df</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
 
-<span class="c1"># Sample low confidence predictions from unlabeled set</span>
+<span class="c1"># Sample images using a combination of active learning strategies</span>
 <span class="n">samples</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">sample_combination</span><span class="p">(</span>
     <span class="n">pred_df</span><span class="p">,</span>
     <span class="n">num_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
