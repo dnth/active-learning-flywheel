@@ -12,13 +12,11 @@
         <meta name="author" content="dnth">
       
       
-        <link rel="canonical" href="https://dnth.github.io/active-vision/quickstart/">
+        <link rel="canonical" href="https://dnth.github.io/active-vision/active_learning/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../preparing_data/">
       
-      
-        <link rel="next" href="../preparing_data/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -26,7 +24,7 @@
     
     
       
-        <title>Quickstart - active-vision</title>
+        <title>Active Learning Cycle - active-vision</title>
       
     
     
@@ -118,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quickstart
+              Active Learning Cycle
             
           </span>
         </div>
@@ -284,6 +282,48 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../preparing_data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Preparing Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -298,7 +338,7 @@
           
   
   <span class="md-ellipsis">
-    Quickstart
+    Active Learning Cycle
     
   </span>
   
@@ -310,7 +350,7 @@
         
   
   <span class="md-ellipsis">
-    Quickstart
+    Active Learning Cycle
     
   </span>
   
@@ -334,24 +374,6 @@
   <a href="#introduction" class="md-nav__link">
     <span class="md-ellipsis">
       Introduction
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#download-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#load-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load the dataset
     </span>
   </a>
   
@@ -429,52 +451,19 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tracking-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tracking Progress
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../preparing_data/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Preparing Data
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../active_learning/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Active Learning Cycle
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -534,24 +523,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#download-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#load-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#create-an-activelearner" class="md-nav__link">
     <span class="md-ellipsis">
       Create an ActiveLearner
@@ -623,6 +594,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tracking-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tracking Progress
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -645,7 +625,7 @@
   
 
 
-  <h1>Quickstart</h1>
+  <h1>Active Learning Cycle</h1>
 
 <h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
 <p>This notebook will guide you through the basic steps to get started with Active Vision.</p>
@@ -663,437 +643,6 @@
 <li>Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</li>
 </ul>
 <p>We will use the Imagenette dataset as a working example in this notebook.</p>
-<h2 id="download-the-dataset">Download the dataset<a class="headerlink" href="#download-the-dataset" title="Permanent link">&para;</a></h2>
-<p>First, lets download the dataset and extract it.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># !wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz</span>
-<span class="c1"># !tar -xvzf imagenette2.tgz</span>
-<span class="c1"># !mv imagenette2 data/imagenette</span>
-<span class="c1"># !rm imagenette2.tgz</span>
-</code></pre></div>
-<h2 id="load-the-dataset">Load the dataset<a class="headerlink" href="#load-the-dataset" title="Permanent link">&para;</a></h2>
-<p><code>active-vision</code> currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: <code>filepath</code> and <code>label</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastai.vision.all</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_image_files</span>
-
-<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data/imagenette/train&quot;</span>
-<span class="n">image_files</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">image_files</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>9469
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">lbl_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;n01440764&quot;</span><span class="p">:</span> <span class="s2">&quot;tench&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n02102040&quot;</span><span class="p">:</span> <span class="s2">&quot;English springer&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n02979186&quot;</span><span class="p">:</span> <span class="s2">&quot;cassette player&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03000684&quot;</span><span class="p">:</span> <span class="s2">&quot;chain saw&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03028079&quot;</span><span class="p">:</span> <span class="s2">&quot;church&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03394916&quot;</span><span class="p">:</span> <span class="s2">&quot;French horn&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03417042&quot;</span><span class="p">:</span> <span class="s2">&quot;garbage truck&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03425413&quot;</span><span class="p">:</span> <span class="s2">&quot;gas pump&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03445777&quot;</span><span class="p">:</span> <span class="s2">&quot;golf ball&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03888257&quot;</span><span class="p">:</span> <span class="s2">&quot;parachute&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-
-<span class="c1"># Create a dataframe with the filepath and label from parent directory</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">]</span>
-
-<span class="c1"># Map the labels to the label dictionary</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbl_dict</span><span class="p">[</span><span class="n">lbl</span><span class="p">]</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
-
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">})</span>
-
-<span class="n">df</span>
-</code></pre></div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/ILSVRC2012_val_00046669.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_58454.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_32588.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_33663.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_27948.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>9464</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9465</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9466</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9467</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9468</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>9469 rows × 2 columns</p>
-</div>
-
-<p>As an initial step, we will randomly sample 10 samples from each class.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">316</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="n">initial_samples</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>/var/folders/9y/5mpk58851fq38f8ljx2svvnm0000gn/T/ipykernel_22109/414664958.py:3: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-  .apply(lambda x: x.sample(n=10, random_state=316))
-</code></pre></div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n02102040/n02102040_2788.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n02102040/n02102040_3759.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n02102040/n02102040_1916.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n02102040/n02102040_6147.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n02102040/n02102040_403.JPEG</td>
-      <td>English springer</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>95</th>
-      <td>data/imagenette/train/n01440764/n01440764_10043.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>96</th>
-      <td>data/imagenette/train/n01440764/n01440764_31535.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>97</th>
-      <td>data/imagenette/train/n01440764/n01440764_12848.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>98</th>
-      <td>data/imagenette/train/n01440764/n01440764_3997.JPEG</td>
-      <td>tench</td>
-    </tr>
-    <tr>
-      <th>99</th>
-      <td>data/imagenette/train/n01440764/n01440764_29788.JPEG</td>
-      <td>tench</td>
-    </tr>
-  </tbody>
-</table>
-<p>100 rows × 2 columns</p>
-</div>
-
-<p>Let's check the distribution of the labels.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>label
-English springer    10
-French horn         10
-cassette player     10
-chain saw           10
-church              10
-garbage truck       10
-gas pump            10
-golf ball           10
-parachute           10
-tench               10
-Name: count, dtype: int64
-</code></pre></div>
-<p>And save it to a parquet file.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;initial_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="c1"># Get the remaining samples by using pd.Index.difference</span>
-<span class="n">remaining_samples</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">initial_samples</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">remaining_samples</span>
-</code></pre></div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/train/n03394916/n03394916_4437.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/train/n03394916/n03394916_42413.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/train/n03394916/n03394916_38808.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/train/n03394916/n03394916_24128.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/train/n03394916/n03394916_11289.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>9364</th>
-      <td>data/imagenette/train/n02979186/n02979186_8089.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9365</th>
-      <td>data/imagenette/train/n02979186/n02979186_19444.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9366</th>
-      <td>data/imagenette/train/n02979186/n02979186_11074.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9367</th>
-      <td>data/imagenette/train/n02979186/n02979186_2938.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>9368</th>
-      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>9369 rows × 2 columns</p>
-</div>
-
-<div class="highlight"><pre><span></span><code><span class="n">remaining_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;unlabeled_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p>Now let's create the evaluation samples which will be used to evaluate the performance of the model. We will use the validation set from the Imagenette dataset as the evaluation set.</p>
-<div class="highlight"><pre><span></span><code><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data/imagenette/val&quot;</span>
-<span class="n">image_files</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">image_files</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>3925
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">]</span>
-
-<span class="c1"># Map the labels to the label dictionary</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbl_dict</span><span class="p">[</span><span class="n">lbl</span><span class="p">]</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
-
-<span class="n">evaluation_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">}</span>
-<span class="p">)</span>
-
-<span class="n">evaluation_samples</span>
-</code></pre></div>
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>filepath</th>
-      <th>label</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>data/imagenette/val/n03394916/n03394916_32422.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>data/imagenette/val/n03394916/n03394916_69132.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>data/imagenette/val/n03394916/n03394916_33771.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>data/imagenette/val/n03394916/n03394916_29940.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>data/imagenette/val/n03394916/ILSVRC2012_val_00033682.JPEG</td>
-      <td>French horn</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>3920</th>
-      <td>data/imagenette/val/n02979186/n02979186_27392.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3921</th>
-      <td>data/imagenette/val/n02979186/n02979186_2742.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3922</th>
-      <td>data/imagenette/val/n02979186/n02979186_2312.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3923</th>
-      <td>data/imagenette/val/n02979186/n02979186_12822.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-    <tr>
-      <th>3924</th>
-      <td>data/imagenette/val/n02979186/ILSVRC2012_val_00042982.JPEG</td>
-      <td>cassette player</td>
-    </tr>
-  </tbody>
-</table>
-<p>3925 rows × 2 columns</p>
-</div>
-
-<div class="highlight"><pre><span></span><code><span class="n">evaluation_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
 <h2 id="create-an-activelearner">Create an ActiveLearner<a class="headerlink" href="#create-an-activelearner" title="Permanent link">&para;</a></h2>
 <p>Now that we have an initial dataset, we can load it into an <code>ActiveLearner</code> object with a model.</p>
 <p>Any fastai and timm models are supported. For simplicity, we will use a <code>resnet18</code> model.</p>
@@ -1171,7 +720,7 @@ Name: count, dtype: int64
 <p>Let's inspect one batch of the train set.</p>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
 </code></pre></div>
-<p><img alt="png" src="../quickstart_files/quickstart_25_0.png" /></p>
+<p><img alt="png" src="../active_learning_files/active_learning_7_0.png" /></p>
 <p>You can inspect the train and validation sets too.</p>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train_set</span>
 </code></pre></div>
@@ -1416,7 +965,7 @@ Name: count, dtype: int64
 
 <div class="highlight"><pre><span></span><code>2025-02-01 22:45:41.335 | INFO     | active_vision.core:lr_find:196 - Optimal learning rate: 0.0030199517495930195
 </code></pre></div>
-<p><img alt="png" src="../quickstart_files/quickstart_30_4.png" /></p>
+<p><img alt="png" src="../active_learning_files/active_learning_12_4.png" /></p>
 <p>Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.</p>
 <div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </code></pre></div>
@@ -1475,7 +1024,7 @@ Name: count, dtype: int64
   </tbody>
 </table>
 
-<p><img alt="png" src="../quickstart_files/quickstart_32_3.png" /></p>
+<p><img alt="png" src="../active_learning_files/active_learning_14_3.png" /></p>
 <style>
     /* Turns off some styling */
     progress {
@@ -1576,7 +1125,7 @@ Name: count, dtype: int64
   </tbody>
 </table>
 
-<p><img alt="png" src="../quickstart_files/quickstart_32_6.png" /></p>
+<p><img alt="png" src="../active_learning_files/active_learning_14_6.png" /></p>
 <h2 id="evaluate">Evaluate<a class="headerlink" href="#evaluate" title="Permanent link">&para;</a></h2>
 <p>Now that we have a trained model, we can evaluate it on the evaluation set.</p>
 <div class="highlight"><pre><span></span><code><span class="n">evaluation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
@@ -2567,7 +2116,7 @@ To create a public link, set `share=True` in `launch()`.
 </code></pre></div>
 <div><iframe src="http://127.0.0.1:7860/" width="100%" height="1000" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>
 
-<p><img alt="image-2.png" src="../quickstart_files/image-2.png" /></p>
+<p><img alt="image-2.png" src="../active_learning_files/image-2.png" /></p>
 <p>The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.</p>
 <p>We can inspect the samples we just labeled.</p>
 <div class="highlight"><pre><span></span><code><span class="n">labeled_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;combination.parquet&quot;</span><span class="p">)</span>
@@ -2855,6 +2404,149 @@ To create a public link, set `share=True` in `launch()`.
 </code></pre></div>
 <h2 id="repeat">Repeat<a class="headerlink" href="#repeat" title="Permanent link">&para;</a></h2>
 <p>Congratulations! You have completed the first cycle of active learning. We now have a small dataset and a trained model. Now whats left is to repeat the process of predicting, sampling, labeling, and adding to the train set until we have a good model.</p>
+<h2 id="tracking-progress">Tracking Progress<a class="headerlink" href="#tracking-progress" title="Permanent link">&para;</a></h2>
+<p>You can track the progress of the active learning process by inspecting the .parquet files saved when running the <code>al.summary()</code> function.</p>
+<p>In this example, I ran 4 cycles of active learning which resulted in the following files:</p>
+<ul>
+<li><code>cycle-1_20250201_224658_acc_88.69%_n_100.parquet</code></li>
+<li><code>cycle-2_20250201_225913_acc_92.18%_n_149.parquet</code></li>
+<li><code>cycle-3_20250201_232340_acc_93.45%_n_195.parquet</code></li>
+<li><code>cycle-4_20250201_233055_acc_94.52%_n_243.parquet</code></li>
+</ul>
+<p>The name of the file contains the cycle name, the date, the accuracy, and the number of labeled samples.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Get all parquet files with &#39;cycle&#39; in the name</span>
+<span class="n">cycle_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;cycle-*.parquet&quot;</span><span class="p">)</span>
+
+<span class="c1"># Read and concatenate all cycle files</span>
+<span class="n">all_cycles_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">cycle_files</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">all_cycles_df</span> <span class="o">=</span> <span class="n">all_cycles_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">all_cycles_df</span>
+</code></pre></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>accuracy</th>
+      <th>train_set_size</th>
+      <th>valid_set_size</th>
+      <th>dataset_size</th>
+      <th>num_classes</th>
+      <th>model</th>
+      <th>pretrained</th>
+      <th>loss_fn</th>
+      <th>device</th>
+      <th>seed</th>
+      <th>batch_size</th>
+      <th>image_size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>cycle-1</td>
+      <td>0.886879</td>
+      <td>80</td>
+      <td>20</td>
+      <td>100</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>cycle-2</td>
+      <td>0.921783</td>
+      <td>120</td>
+      <td>29</td>
+      <td>149</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cycle-3</td>
+      <td>0.934522</td>
+      <td>156</td>
+      <td>39</td>
+      <td>195</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cycle-4</td>
+      <td>0.945223</td>
+      <td>195</td>
+      <td>48</td>
+      <td>243</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">all_cycles_df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">&#39;dataset_size&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;accuracy&#39;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Model Accuracy vs Dataset Size&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Images&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Accuracy&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">FuncFormatter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{:.1%}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div>
+<p><img alt="png" src="../active_learning_files/active_learning_38_0.png" /></p>
 
 
 
@@ -2887,7 +2579,7 @@ To create a public link, set `share=True` in `launch()`.
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-01-24T13:24:40+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-01-24</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-01T16:23:38+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-01</span>
   </span>
 
     

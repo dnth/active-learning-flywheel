@@ -1,710 +1,90 @@
+## Introduction
 
-<!doctype html>
-<html lang="en" class="no-js">
-  <head>
-    
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width,initial-scale=1">
-      
-        <meta name="description" content="Active learning for computer vision.">
-      
-      
-        <meta name="author" content="dnth">
-      
-      
-        <link rel="canonical" href="https://dnth.github.io/active-vision/quickstart/">
-      
-      
-        <link rel="prev" href="..">
-      
-      
-        <link rel="next" href="../preparing_data/">
-      
-      
-      <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.1">
-    
-    
-      
-        <title>Quickstart - active-vision</title>
-      
-    
-    
-      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
-      
-        
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
-      
-      
+This notebook will guide you through the basic steps to get started with Active Vision.
+
+By the end of this notebook, you will be able to:
+
+- Understand the basic workflow of active learning
+- Understand the basic components of Active Vision
+- Understand how to use Active Vision to train a model
+- Understand how to use Active Vision to iteratively improve your dataset
+
+Before we start, we need to prepare 3 sets of data:
+
+- Initial samples: A dataset of labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.
+- Unlabeled samples: A dataset of unlabeled images. We will continuously sample from this set using active learning strategies.
+- Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.
+
+We will use the Imagenette dataset as a working example in this notebook.
 
 
-    
-    
-      
-    
-    
-      
-        
-        
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:300,300i,400,400i,700,700i%7CRegular:400,400i,700,700i&display=fallback">
-        <style>:root{--md-text-font:"Google Sans";--md-code-font:"Regular"}</style>
-      
-    
-    
-      <link rel="stylesheet" href="../css/timeago.css">
-    
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
-    
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
-    
-      
+## Download the dataset
 
-    
-    
-    
-  </head>
-  
-  
-    
-    
-      
-    
-    
-    
-    
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
-  
-    
-    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
-    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer"></label>
-    <div data-md-component="skip">
-      
-        
-        <a href="#introduction" class="md-skip">
-          Skip to content
-        </a>
-      
-    </div>
-    <div data-md-component="announce">
-      
-    </div>
-    
-    
-      
+First, lets download the dataset and extract it.
 
-  
 
-<header class="md-header md-header--shadow" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="active-vision" class="md-header__button md-logo" aria-label="active-vision" data-md-component="logo">
-      
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+```python
+# !wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz
+# !tar -xvzf imagenette2.tgz
+# !mv imagenette2 data/imagenette
+# !rm imagenette2.tgz
+```
 
-    </a>
-    <label class="md-header__button md-icon" for="__drawer">
-      
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
-    </label>
-    <div class="md-header__title" data-md-component="header-title">
-      <div class="md-header__ellipsis">
-        <div class="md-header__topic">
-          <span class="md-ellipsis">
-            active-vision
-          </span>
-        </div>
-        <div class="md-header__topic" data-md-component="header-topic">
-          <span class="md-ellipsis">
-            
-              Quickstart
-            
-          </span>
-        </div>
-      </div>
-    </div>
-    
-      
-        <form class="md-header__option" data-md-component="palette">
-  
-    
-    
-    
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
-    
-      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
-      </label>
-    
-  
-    
-    
-    
-    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
-    
-      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
-      </label>
-    
-  
-</form>
-      
-    
-    
-      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
-    
-    
-    
-      <label class="md-header__button md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-      </label>
-      <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
-            
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
-          </a>
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-    
-    
-      <div class="md-header__source">
-        <a href="https://github.com/dnth/active-vision" title="Go to repository" class="md-source" data-md-component="source">
-  <div class="md-source__icon md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
-  </div>
-  <div class="md-source__repository">
-    GitHub
-  </div>
-</a>
-      </div>
-    
-  </nav>
-  
-</header>
-    
-    <div class="md-container" data-md-component="container">
-      
-      
-        
-          
-        
-      
-      <main class="md-main" data-md-component="main">
-        <div class="md-main__inner md-grid">
-          
-            
-              
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
+## Load the dataset
+
+`active-vision` currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: `filepath` and `label`.
+
+
+```python
+from fastai.vision.all import get_image_files
+
+path = "data/imagenette/train"
+image_files = get_image_files(path)
+len(image_files)
+```
 
 
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
-  <label class="md-nav__title" for="__drawer">
-    <a href=".." title="active-vision" class="md-nav__button md-logo" aria-label="active-vision" data-md-component="logo">
-      
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
-    </a>
-    active-vision
-  </label>
-  
-    <div class="md-nav__source">
-      <a href="https://github.com/dnth/active-vision" title="Go to repository" class="md-source" data-md-component="source">
-  <div class="md-source__icon md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
-  </div>
-  <div class="md-source__repository">
-    GitHub
-  </div>
-</a>
-    </div>
-  
-  <ul class="md-nav__list" data-md-scrollfix>
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Home
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Quickstart
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    Quickstart
-    
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#introduction" class="md-nav__link">
-    <span class="md-ellipsis">
-      Introduction
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#download-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#load-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#create-an-activelearner" class="md-nav__link">
-    <span class="md-ellipsis">
-      Create an ActiveLearner
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#train" class="md-nav__link">
-    <span class="md-ellipsis">
-      Train
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evaluate" class="md-nav__link">
-    <span class="md-ellipsis">
-      Evaluate
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#predict" class="md-nav__link">
-    <span class="md-ellipsis">
-      Predict
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sample" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sample
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#label" class="md-nav__link">
-    <span class="md-ellipsis">
-      Label
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-to-train-set" class="md-nav__link">
-    <span class="md-ellipsis">
-      Add to train set
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#repeat" class="md-nav__link">
-    <span class="md-ellipsis">
-      Repeat
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../preparing_data/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Preparing Data
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../active_learning/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Active Learning Cycle
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../train.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Training the Final Model
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-  </ul>
-</nav>
-                  </div>
-                </div>
-              </div>
-            
-            
-              
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#introduction" class="md-nav__link">
-    <span class="md-ellipsis">
-      Introduction
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#download-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#load-the-dataset" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load the dataset
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#create-an-activelearner" class="md-nav__link">
-    <span class="md-ellipsis">
-      Create an ActiveLearner
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#train" class="md-nav__link">
-    <span class="md-ellipsis">
-      Train
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evaluate" class="md-nav__link">
-    <span class="md-ellipsis">
-      Evaluate
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#predict" class="md-nav__link">
-    <span class="md-ellipsis">
-      Predict
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sample" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sample
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#label" class="md-nav__link">
-    <span class="md-ellipsis">
-      Label
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-to-train-set" class="md-nav__link">
-    <span class="md-ellipsis">
-      Add to train set
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#repeat" class="md-nav__link">
-    <span class="md-ellipsis">
-      Repeat
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
-          
-          
-            <div class="md-content" data-md-component="content">
-              <article class="md-content__inner md-typeset">
-                
+    9469
 
 
 
-                  
+
+```python
+lbl_dict = {
+    "n01440764": "tench",
+    "n02102040": "English springer",
+    "n02979186": "cassette player",
+    "n03000684": "chain saw",
+    "n03028079": "church",
+    "n03394916": "French horn",
+    "n03417042": "garbage truck",
+    "n03425413": "gas pump",
+    "n03445777": "golf ball",
+    "n03888257": "parachute",
+}
+
+```
 
 
-  
-  
+```python
+import pandas as pd
+
+# Create a dataframe with the filepath and label from parent directory
+labels = [str(path.parts[-2]) for path in image_files]
+
+# Map the labels to the label dictionary
+labels = [lbl_dict[lbl] for lbl in labels]
+
+df = pd.DataFrame({"filepath": [str(path) for path in image_files], "label": labels})
+
+df
+```
 
 
-  <h1>Quickstart</h1>
 
-<h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
-<p>This notebook will guide you through the basic steps to get started with Active Vision.</p>
-<p>By the end of this notebook, you will be able to:</p>
-<ul>
-<li>Understand the basic workflow of active learning</li>
-<li>Understand the basic components of Active Vision</li>
-<li>Understand how to use Active Vision to train a model</li>
-<li>Understand how to use Active Vision to iteratively improve your dataset</li>
-</ul>
-<p>Before we start, we need to prepare 3 sets of data:</p>
-<ul>
-<li>Initial samples: A dataset of labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.</li>
-<li>Unlabeled samples: A dataset of unlabeled images. We will continuously sample from this set using active learning strategies.</li>
-<li>Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.</li>
-</ul>
-<p>We will use the Imagenette dataset as a working example in this notebook.</p>
-<h2 id="download-the-dataset">Download the dataset<a class="headerlink" href="#download-the-dataset" title="Permanent link">&para;</a></h2>
-<p>First, lets download the dataset and extract it.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># !wget https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz</span>
-<span class="c1"># !tar -xvzf imagenette2.tgz</span>
-<span class="c1"># !mv imagenette2 data/imagenette</span>
-<span class="c1"># !rm imagenette2.tgz</span>
-</code></pre></div>
-<h2 id="load-the-dataset">Load the dataset<a class="headerlink" href="#load-the-dataset" title="Permanent link">&para;</a></h2>
-<p><code>active-vision</code> currently supports datasets in a pandas dataframe format. The dataframe should have at least 2 columns: <code>filepath</code> and <code>label</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">fastai.vision.all</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_image_files</span>
 
-<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data/imagenette/train&quot;</span>
-<span class="n">image_files</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">image_files</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>9469
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">lbl_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;n01440764&quot;</span><span class="p">:</span> <span class="s2">&quot;tench&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n02102040&quot;</span><span class="p">:</span> <span class="s2">&quot;English springer&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n02979186&quot;</span><span class="p">:</span> <span class="s2">&quot;cassette player&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03000684&quot;</span><span class="p">:</span> <span class="s2">&quot;chain saw&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03028079&quot;</span><span class="p">:</span> <span class="s2">&quot;church&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03394916&quot;</span><span class="p">:</span> <span class="s2">&quot;French horn&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03417042&quot;</span><span class="p">:</span> <span class="s2">&quot;garbage truck&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03425413&quot;</span><span class="p">:</span> <span class="s2">&quot;gas pump&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03445777&quot;</span><span class="p">:</span> <span class="s2">&quot;golf ball&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;n03888257&quot;</span><span class="p">:</span> <span class="s2">&quot;parachute&quot;</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-
-<span class="c1"># Create a dataframe with the filepath and label from parent directory</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">]</span>
-
-<span class="c1"># Map the labels to the label dictionary</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbl_dict</span><span class="p">[</span><span class="n">lbl</span><span class="p">]</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
-
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">})</span>
-
-<span class="n">df</span>
-</code></pre></div>
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -788,18 +168,28 @@
 <p>9469 rows × 2 columns</p>
 </div>
 
-<p>As an initial step, we will randomly sample 10 samples from each class.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">316</span><span class="p">))</span>
-    <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="p">)</span>
 
-<span class="n">initial_samples</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>/var/folders/9y/5mpk58851fq38f8ljx2svvnm0000gn/T/ipykernel_22109/414664958.py:3: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-  .apply(lambda x: x.sample(n=10, random_state=316))
-</code></pre></div>
+
+As an initial step, we will randomly sample 10 samples from each class.
+
+
+```python
+initial_samples = (
+    df.groupby("label")
+    .apply(lambda x: x.sample(n=10, random_state=316))
+    .reset_index(drop=True)
+)
+
+initial_samples
+```
+
+    /var/folders/9y/5mpk58851fq38f8ljx2svvnm0000gn/T/ipykernel_22109/414664958.py:3: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+      .apply(lambda x: x.sample(n=10, random_state=316))
+
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -883,29 +273,51 @@
 <p>100 rows × 2 columns</p>
 </div>
 
-<p>Let's check the distribution of the labels.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>label
-English springer    10
-French horn         10
-cassette player     10
-chain saw           10
-church              10
-garbage truck       10
-gas pump            10
-golf ball           10
-parachute           10
-tench               10
-Name: count, dtype: int64
-</code></pre></div>
-<p>And save it to a parquet file.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;initial_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="c1"># Get the remaining samples by using pd.Index.difference</span>
-<span class="n">remaining_samples</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">initial_samples</span><span class="o">.</span><span class="n">index</span><span class="p">)]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">remaining_samples</span>
-</code></pre></div>
+
+
+Let's check the distribution of the labels.
+
+
+```python
+initial_samples["label"].value_counts()
+```
+
+
+
+
+    label
+    English springer    10
+    French horn         10
+    cassette player     10
+    chain saw           10
+    church              10
+    garbage truck       10
+    gas pump            10
+    golf ball           10
+    parachute           10
+    tench               10
+    Name: count, dtype: int64
+
+
+
+And save it to a parquet file.
+
+
+```python
+initial_samples.to_parquet("initial_samples.parquet")
+```
+
+
+```python
+# Get the remaining samples by using pd.Index.difference
+remaining_samples = df[~df.index.isin(initial_samples.index)].reset_index(drop=True)
+remaining_samples
+
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -989,26 +401,49 @@ Name: count, dtype: int64
 <p>9369 rows × 2 columns</p>
 </div>
 
-<div class="highlight"><pre><span></span><code><span class="n">remaining_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;unlabeled_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<p>Now let's create the evaluation samples which will be used to evaluate the performance of the model. We will use the validation set from the Imagenette dataset as the evaluation set.</p>
-<div class="highlight"><pre><span></span><code><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;data/imagenette/val&quot;</span>
-<span class="n">image_files</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">image_files</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>3925
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">]</span>
 
-<span class="c1"># Map the labels to the label dictionary</span>
-<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbl_dict</span><span class="p">[</span><span class="n">lbl</span><span class="p">]</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
 
-<span class="n">evaluation_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">image_files</span><span class="p">],</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">}</span>
-<span class="p">)</span>
 
-<span class="n">evaluation_samples</span>
-</code></pre></div>
+```python
+remaining_samples.to_parquet("unlabeled_samples.parquet")
+```
+
+Now let's create the evaluation samples which will be used to evaluate the performance of the model. We will use the validation set from the Imagenette dataset as the evaluation set.
+
+
+
+
+```python
+path = "data/imagenette/val"
+image_files = get_image_files(path)
+len(image_files)
+
+```
+
+
+
+
+    3925
+
+
+
+
+```python
+labels = [str(path.parts[-2]) for path in image_files]
+
+# Map the labels to the label dictionary
+labels = [lbl_dict[lbl] for lbl in labels]
+
+evaluation_samples = pd.DataFrame(
+    {"filepath": [str(path) for path in image_files], "label": labels}
+)
+
+evaluation_samples
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1092,21 +527,40 @@ Name: count, dtype: int64
 <p>3925 rows × 2 columns</p>
 </div>
 
-<div class="highlight"><pre><span></span><code><span class="n">evaluation_samples</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="create-an-activelearner">Create an ActiveLearner<a class="headerlink" href="#create-an-activelearner" title="Permanent link">&para;</a></h2>
-<p>Now that we have an initial dataset, we can load it into an <code>ActiveLearner</code> object with a model.</p>
-<p>Any fastai and timm models are supported. For simplicity, we will use a <code>resnet18</code> model.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">active_vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearner</span>
 
-<span class="n">al</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;cycle-1&quot;</span><span class="p">)</span>
-<span class="n">al</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;resnet18&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;mps&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:44:09.797 | INFO     | active_vision.core:load_model:70 - Loading a pretrained timm model `resnet18` on `mps`
-</code></pre></div>
-<p>We can load the initial samples into the <code>ActiveLearner</code> object.</p>
-<div class="highlight"><pre><span></span><code><span class="n">initial_samples</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</code></pre></div>
+
+
+```python
+evaluation_samples.to_parquet("evaluation_samples.parquet")
+```
+
+## Create an ActiveLearner
+
+Now that we have an initial dataset, we can load it into an `ActiveLearner` object with a model.
+
+Any fastai and timm models are supported. For simplicity, we will use a `resnet18` model.
+
+
+```python
+from active_vision import ActiveLearner
+
+al = ActiveLearner(name="cycle-1")
+al.load_model(model="resnet18", pretrained=True, device="mps")
+```
+
+    [32m2025-02-01 22:44:09.797[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_model[0m:[36m70[0m - [1mLoading a pretrained timm model `resnet18` on `mps`[0m
+
+
+We can load the initial samples into the `ActiveLearner` object.
+
+
+```python
+initial_samples.head()
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1159,22 +613,44 @@ Name: count, dtype: int64
 </table>
 </div>
 
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span>
-    <span class="n">initial_samples</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span>
-<span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:44:50.385 | INFO     | active_vision.core:load_dataset:119 - Loading dataset from `filepath` and `label` columns
-2025-02-01 22:44:50.407 | INFO     | active_vision.core:load_dataset:153 - Creating new learner
-2025-02-01 22:44:50.872 | INFO     | active_vision.core:_optimize_learner:97 - Enabled mixed precision training
-2025-02-01 22:44:50.873 | INFO     | active_vision.core:_finalize_setup:105 - Done. Ready to train.
-</code></pre></div>
-<p>Let's inspect one batch of the train set.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
-</code></pre></div>
-<p><img alt="png" src="../quickstart_files/quickstart_25_0.png" /></p>
-<p>You can inspect the train and validation sets too.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train_set</span>
-</code></pre></div>
+
+
+
+```python
+al.load_dataset(
+    initial_samples, filepath_col="filepath", label_col="label", batch_size=8
+)
+```
+
+    [32m2025-02-01 22:44:50.385[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m119[0m - [1mLoading dataset from `filepath` and `label` columns[0m
+    [32m2025-02-01 22:44:50.407[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m153[0m - [1mCreating new learner[0m
+    [32m2025-02-01 22:44:50.872[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_optimize_learner[0m:[36m97[0m - [1mEnabled mixed precision training[0m
+    [32m2025-02-01 22:44:50.873[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_finalize_setup[0m:[36m105[0m - [1mDone. Ready to train.[0m
+
+
+Let's inspect one batch of the train set.
+
+
+```python
+al.show_batch()
+```
+
+
+    
+![png](quickstart_files/quickstart_25_0.png)
+    
+
+
+You can inspect the train and validation sets too.
+
+
+```python
+al.train_set
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1258,8 +734,16 @@ Name: count, dtype: int64
 <p>80 rows × 2 columns</p>
 </div>
 
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">valid_set</span>
-</code></pre></div>
+
+
+
+```python
+al.valid_set
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1387,17 +871,28 @@ Name: count, dtype: int64
 </table>
 </div>
 
-<h2 id="train">Train<a class="headerlink" href="#train" title="Permanent link">&para;</a></h2>
-<p>Now that we have the initial dataset, we can train the model.</p>
-<p>But first, let's check the optimal learning rate for the model.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">lr_find</span><span class="p">()</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:45:36.137 | INFO     | active_vision.core:lr_find:194 - Finding optimal learning rate
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of &#39;cuda&#39;, but CUDA is not available. Disabling
-  warnings.warn(
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
-  warnings.warn(
-</code></pre></div>
+
+
+## Train 
+
+Now that we have the initial dataset, we can train the model.
+
+But first, let's check the optimal learning rate for the model.
+
+
+```python
+al.lr_find()
+```
+
+    [32m2025-02-01 22:45:36.137[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m194[0m - [1mFinding optimal learning rate[0m
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
 <style>
     /* Turns off some styling */
     progress {
@@ -1414,16 +909,35 @@ Name: count, dtype: int64
     }
 </style>
 
-<div class="highlight"><pre><span></span><code>2025-02-01 22:45:41.335 | INFO     | active_vision.core:lr_find:196 - Optimal learning rate: 0.0030199517495930195
-</code></pre></div>
-<p><img alt="png" src="../quickstart_files/quickstart_30_4.png" /></p>
-<p>Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:46:00.935 | INFO     | active_vision.core:train:207 - Training head for 3 epochs
-2025-02-01 22:46:00.936 | INFO     | active_vision.core:train:208 - Training model end-to-end for 10 epochs
-2025-02-01 22:46:00.936 | INFO     | active_vision.core:train:209 - Learning rate: 0.005 with one-cycle learning rate scheduler
-</code></pre></div>
+
+
+
+
+
+
+    [32m2025-02-01 22:45:41.335[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m196[0m - [1mOptimal learning rate: 0.0030199517495930195[0m
+
+
+
+    
+![png](quickstart_files/quickstart_30_4.png)
+    
+
+
+Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.
+
+
+```python
+al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
+```
+
+    [32m2025-02-01 22:46:00.935[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m207[0m - [1mTraining head for 3 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m208[0m - [1mTraining model end-to-end for 10 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m209[0m - [1mLearning rate: 0.005 with one-cycle learning rate scheduler[0m
+
+
+
+
 <style>
     /* Turns off some styling */
     progress {
@@ -1439,6 +953,9 @@ Name: count, dtype: int64
         background: #F44336;
     }
 </style>
+
+
+
 
 <table border="1" class="dataframe">
   <thead>
@@ -1475,7 +992,15 @@ Name: count, dtype: int64
   </tbody>
 </table>
 
-<p><img alt="png" src="../quickstart_files/quickstart_32_3.png" /></p>
+
+
+    
+![png](quickstart_files/quickstart_32_3.png)
+    
+
+
+
+
 <style>
     /* Turns off some styling */
     progress {
@@ -1491,6 +1016,9 @@ Name: count, dtype: int64
         background: #F44336;
     }
 </style>
+
+
+
 
 <table border="1" class="dataframe">
   <thead>
@@ -1576,12 +1104,26 @@ Name: count, dtype: int64
   </tbody>
 </table>
 
-<p><img alt="png" src="../quickstart_files/quickstart_32_6.png" /></p>
-<h2 id="evaluate">Evaluate<a class="headerlink" href="#evaluate" title="Permanent link">&para;</a></h2>
-<p>Now that we have a trained model, we can evaluate it on the evaluation set.</p>
-<div class="highlight"><pre><span></span><code><span class="n">evaluation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;evaluation_samples.parquet&quot;</span><span class="p">)</span>
-<span class="n">evaluation_df</span>
-</code></pre></div>
+
+
+    
+![png](quickstart_files/quickstart_32_6.png)
+    
+
+
+## Evaluate
+
+Now that we have a trained model, we can evaluate it on the evaluation set.
+
+
+```python
+evaluation_df = pd.read_parquet("evaluation_samples.parquet")
+evaluation_df
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1665,13 +1207,21 @@ Name: count, dtype: int64
 <p>3925 rows × 2 columns</p>
 </div>
 
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">evaluation_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">&quot;filepath&quot;</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of &#39;cuda&#39;, but CUDA is not available. Disabling
-  warnings.warn(
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
-  warnings.warn(
-</code></pre></div>
+
+
+
+```python
+al.evaluate(evaluation_df, filepath_col="filepath", label_col="label")
+```
+
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
 <style>
     /* Turns off some styling */
     progress {
@@ -1688,20 +1238,37 @@ Name: count, dtype: int64
     }
 </style>
 
-<div class="highlight"><pre><span></span><code>2025-02-01 22:46:36.026 | INFO     | active_vision.core:evaluate:285 - Accuracy: 88.69%
 
 
 
 
 
-0.8868789808917198
-</code></pre></div>
-<p>That is a good start. ~88% accuracy is not bad for a first try with only 80 labeled samples. Let's see if we can improve it.</p>
-<p>Let's save the summary of the cycle.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:46:58.694 | INFO     | active_vision.core:summary:578 - Saved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet
-</code></pre></div>
+
+    [32m2025-02-01 22:46:36.026[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mevaluate[0m:[36m285[0m - [1mAccuracy: 88.69%[0m
+
+
+
+
+
+    0.8868789808917198
+
+
+
+That is a good start. ~88% accuracy is not bad for a first try with only 80 labeled samples. Let's see if we can improve it.
+
+Let's save the summary of the cycle.
+
+
+```python
+al.summary()
+```
+
+    [32m2025-02-01 22:46:58.694[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msummary[0m:[36m578[0m - [1mSaved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet[0m
+
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -1756,24 +1323,44 @@ Name: count, dtype: int64
 </table>
 </div>
 
-<p>The above will create a .parquet file with the summary of the cycle. This will be useful for tracking the progress of the active learning process.</p>
-<h2 id="predict">Predict<a class="headerlink" href="#predict" title="Permanent link">&para;</a></h2>
-<p>Using the model, we can predict the labels of the unlabeled samples and get the most impactful samples to label.</p>
-<div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;unlabeled_samples.parquet&quot;</span><span class="p">)</span>
-<span class="n">filepaths</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;filepath&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>9369
-</code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="n">pred_df</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
-<span class="n">pred_df</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:48:06.456 | INFO     | active_vision.core:predict:216 - Running inference on 9369 samples
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of &#39;cuda&#39;, but CUDA is not available. Disabling
-  warnings.warn(
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
-  warnings.warn(
-</code></pre></div>
+
+
+The above will create a .parquet file with the summary of the cycle. This will be useful for tracking the progress of the active learning process.
+
+## Predict
+
+Using the model, we can predict the labels of the unlabeled samples and get the most impactful samples to label.
+
+
+
+```python
+df = pd.read_parquet("unlabeled_samples.parquet")
+filepaths = df["filepath"].tolist()
+len(filepaths)
+```
+
+
+
+
+    9369
+
+
+
+
+```python
+pred_df = al.predict(filepaths, batch_size=128)
+pred_df
+```
+
+    [32m2025-02-01 22:48:06.456[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 9369 samples[0m
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
 <style>
     /* Turns off some styling */
     progress {
@@ -1789,6 +1376,15 @@ Name: count, dtype: int64
         background: #F44336;
     }
 </style>
+
+
+
+
+
+
+
+
+
 
 <div>
 <style scoped>
@@ -1921,38 +1517,49 @@ Name: count, dtype: int64
 <p>9369 rows × 6 columns</p>
 </div>
 
-<h2 id="sample">Sample<a class="headerlink" href="#sample" title="Permanent link">&para;</a></h2>
-<p>With the predicted labels, we can sample the most impactful samples to label using active learning strategies.</p>
-<p>For this example, we will use the <code>sample_combination</code> strategy to sample 50 samples from each strategy listed below in the specified proportions.</p>
-<div class="highlight"><pre><span></span><code><span class="n">samples</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">sample_combination</span><span class="p">(</span>
-    <span class="n">pred_df</span><span class="p">,</span>
-    <span class="n">num_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-    <span class="n">combination</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;least-confidence&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-        <span class="s2">&quot;ratio-of-confidence&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="s2">&quot;entropy&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="s2">&quot;model-based-outlier&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
-        <span class="s2">&quot;random&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
-    <span class="p">},</span>
-<span class="p">)</span>
 
-<span class="n">samples</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:48:54.961 | INFO     | active_vision.core:sample_combination:498 - Using combination sampling to get 50 samples
-2025-02-01 22:48:54.965 | INFO     | active_vision.core:sample_uncertain:305 - Using least confidence strategy to get top 20 samples
-2025-02-01 22:48:54.981 | INFO     | active_vision.core:sample_uncertain:328 - Using ratio of confidence strategy to get top 10 samples
-2025-02-01 22:48:55.030 | INFO     | active_vision.core:sample_uncertain:342 - Using entropy strategy to get top 10 samples
-/Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: divide by zero encountered in log2
-  df.loc[:, &quot;score&quot;] = df[&quot;probs&quot;].apply(lambda x: -np.sum(x * np.log2(x)))
-/Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: invalid value encountered in multiply
-  df.loc[:, &quot;score&quot;] = df[&quot;probs&quot;].apply(lambda x: -np.sum(x * np.log2(x)))
-2025-02-01 22:48:55.067 | INFO     | active_vision.core:sample_diverse:388 - Using model-based outlier strategy to get top 5 samples
-2025-02-01 22:48:55.067 | INFO     | active_vision.core:predict:216 - Running inference on 20 samples
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of &#39;cuda&#39;, but CUDA is not available. Disabling
-  warnings.warn(
-/Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
-  warnings.warn(
-</code></pre></div>
+
+## Sample
+
+With the predicted labels, we can sample the most impactful samples to label using active learning strategies.
+
+For this example, we will use the `sample_combination` strategy to sample 50 samples from each strategy listed below in the specified proportions.
+
+
+```python
+samples = al.sample_combination(
+    pred_df,
+    num_samples=50,
+    combination={
+        "least-confidence": 0.4,
+        "ratio-of-confidence": 0.2,
+        "entropy": 0.2,
+        "model-based-outlier": 0.1,
+        "random": 0.1,
+    },
+)
+
+samples
+```
+
+    [32m2025-02-01 22:48:54.961[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_combination[0m:[36m498[0m - [1mUsing combination sampling to get 50 samples[0m
+    [32m2025-02-01 22:48:54.965[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m305[0m - [1mUsing least confidence strategy to get top 20 samples[0m
+    [32m2025-02-01 22:48:54.981[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m328[0m - [1mUsing ratio of confidence strategy to get top 10 samples[0m
+    [32m2025-02-01 22:48:55.030[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m342[0m - [1mUsing entropy strategy to get top 10 samples[0m
+    /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: divide by zero encountered in log2
+      df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
+    /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: invalid value encountered in multiply
+      df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_diverse[0m:[36m388[0m - [1mUsing model-based outlier strategy to get top 5 samples[0m
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 20 samples[0m
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
 <style>
     /* Turns off some styling */
     progress {
@@ -1969,8 +1576,18 @@ Name: count, dtype: int64
     }
 </style>
 
-<div class="highlight"><pre><span></span><code>2025-02-01 22:48:55.347 | INFO     | active_vision.core:sample_random:460 - Sampling 5 random samples
-</code></pre></div>
+
+
+
+
+
+
+    [32m2025-02-01 22:48:55.347[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_random[0m:[36m460[0m - [1mSampling 5 random samples[0m
+
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -2554,26 +2171,46 @@ Name: count, dtype: int64
 </table>
 </div>
 
-<h2 id="label">Label<a class="headerlink" href="#label" title="Permanent link">&para;</a></h2>
-<p>Let's label the samples and save them to a parquet file named <code>combination.parquet</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">&quot;combination.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:50:11.038 | INFO     | active_vision.core:label:612 - Launching labeling interface for 50 samples
 
 
-* Running on local URL:  http://127.0.0.1:7860
+## Label
 
-To create a public link, set `share=True` in `launch()`.
-</code></pre></div>
+Let's label the samples and save them to a parquet file named `combination.parquet`.
+
+
+```python
+al.label(samples, output_filename="combination.parquet")
+```
+
+    [32m2025-02-01 22:50:11.038[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlabel[0m:[36m612[0m - [1mLaunching labeling interface for 50 samples[0m
+
+
+    * Running on local URL:  http://127.0.0.1:7860
+    
+    To create a public link, set `share=True` in `launch()`.
+
+
+
 <div><iframe src="http://127.0.0.1:7860/" width="100%" height="1000" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>
 
-<p><img alt="image-2.png" src="../quickstart_files/image-2.png" /></p>
-<p>The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.</p>
-<p>We can inspect the samples we just labeled.</p>
-<div class="highlight"><pre><span></span><code><span class="n">labeled_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">&quot;combination.parquet&quot;</span><span class="p">)</span>
 
-<span class="n">labeled_df</span>
-</code></pre></div>
+![image-2.png](quickstart_files/image-2.png)
+
+The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.
+
+We can inspect the samples we just labeled.
+
+
+```python
+labeled_df = pd.read_parquet("combination.parquet")
+
+labeled_df
+
+```
+
+
+
+
 <div>
 <style scoped>
     .dataframe tbody tr th:only-of-type {
@@ -2846,113 +2483,23 @@ To create a public link, set `share=True` in `launch()`.
 </table>
 </div>
 
-<h2 id="add-to-train-set">Add to train set<a class="headerlink" href="#add-to-train-set" title="Permanent link">&para;</a></h2>
-<p>Now that we have labeled the samples, we can add them to the train set and save it to a parquet file named <code>active_labeled.parquet</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">add_to_dataset</span><span class="p">(</span><span class="n">labeled_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">&quot;active_labeled.parquet&quot;</span><span class="p">)</span>
-</code></pre></div>
-<div class="highlight"><pre><span></span><code>2025-02-01 22:55:13.929 | INFO     | active_vision.core:add_to_dataset:1060 - Adding 49 samples to dataset
-2025-02-01 22:55:13.932 | INFO     | active_vision.core:add_to_dataset:1068 - Saved dataset to active_labeled.parquet
-</code></pre></div>
-<h2 id="repeat">Repeat<a class="headerlink" href="#repeat" title="Permanent link">&para;</a></h2>
-<p>Congratulations! You have completed the first cycle of active learning. We now have a small dataset and a trained model. Now whats left is to repeat the process of predicting, sampling, labeling, and adding to the train set until we have a good model.</p>
 
 
+## Add to train set
+
+Now that we have labeled the samples, we can add them to the train set and save it to a parquet file named `active_labeled.parquet`.
 
 
+```python
+al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")
+```
+
+    [32m2025-02-01 22:55:13.929[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1060[0m - [1mAdding 49 samples to dataset[0m
+    [32m2025-02-01 22:55:13.932[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1068[0m - [1mSaved dataset to active_labeled.parquet[0m
 
 
+## Repeat
 
-  
-    
-  
-  
-    
-  
+Congratulations! You have completed the first cycle of active learning. We now have a small dataset and a trained model. Now whats left is to repeat the process of predicting, sampling, labeling, and adding to the train set until we have a good model.
 
 
-  <aside class="md-source-file">
-    
-      
-  <span class="md-source-file__fact">
-    <span class="md-icon" title="Last update">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
-    </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-01T16:23:38+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-01</span>
-  </span>
-
-    
-    
-      
-  <span class="md-source-file__fact">
-    <span class="md-icon" title="Created">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
-    </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-01-24T13:24:40+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-01-24</span>
-  </span>
-
-    
-    
-    
-  </aside>
-
-
-
-
-
-                
-
-              </article>
-            </div>
-          
-          
-<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
-        </div>
-        
-          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
-  Back to top
-</button>
-        
-      </main>
-      
-        <footer class="md-footer">
-  
-  <div class="md-footer-meta md-typeset">
-    <div class="md-footer-meta__inner md-grid">
-      <div class="md-copyright">
-  
-    <div class="md-copyright__highlight">
-      Copyright &copy; 2024 - 2025 Dickson Neoh
-    </div>
-  
-  
-    Made with
-    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-      Material for MkDocs
-    </a>
-  
-</div>
-      
-    </div>
-  </div>
-</footer>
-      
-    </div>
-    <div class="md-dialog" data-md-component="dialog">
-      <div class="md-dialog__inner md-typeset"></div>
-    </div>
-    
-    
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "search.highlight", "search.share"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
-    
-    
-      <script src="../assets/javascripts/bundle.5090c770.min.js"></script>
-      
-        <script src="../js/timeago.min.js"></script>
-      
-        <script src="../js/timeago_mkdocs_material.js"></script>
-      
-    
-  </body>
-</html>

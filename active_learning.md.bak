@@ -1,0 +1,2154 @@
+## Introduction
+
+This notebook will guide you through the basic steps to get started with Active Vision.
+
+By the end of this notebook, you will be able to:
+
+- Understand the basic workflow of active learning
+- Understand the basic components of Active Vision
+- Understand how to use Active Vision to train a model
+- Understand how to use Active Vision to iteratively improve your dataset
+
+Before we start, we need to prepare 3 sets of data:
+
+- Initial samples: A dataset of labeled images to train an initial model. If you don't have any labeled data, you can label some images yourself.
+- Unlabeled samples: A dataset of unlabeled images. We will continuously sample from this set using active learning strategies.
+- Evaluation samples: A dataset of labeled images. We will use this set to evaluate the performance of the model. This is the test set, DO NOT use it for active learning. Split this out in the beginning.
+
+We will use the Imagenette dataset as a working example in this notebook.
+
+
+## Create an ActiveLearner
+
+Now that we have an initial dataset, we can load it into an `ActiveLearner` object with a model.
+
+Any fastai and timm models are supported. For simplicity, we will use a `resnet18` model.
+
+
+```python
+from active_vision import ActiveLearner
+
+al = ActiveLearner(name="cycle-1")
+al.load_model(model="resnet18", pretrained=True, device="mps")
+```
+
+    [32m2025-02-01 22:44:09.797[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_model[0m:[36m70[0m - [1mLoading a pretrained timm model `resnet18` on `mps`[0m
+
+
+We can load the initial samples into the `ActiveLearner` object.
+
+
+```python
+initial_samples.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/train/n02102040/n02102040_2788...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/train/n02102040/n02102040_3759...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/train/n02102040/n02102040_1916...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/train/n02102040/n02102040_6147...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/train/n02102040/n02102040_403....</td>
+      <td>English springer</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+al.load_dataset(
+    initial_samples, filepath_col="filepath", label_col="label", batch_size=8
+)
+```
+
+    [32m2025-02-01 22:44:50.385[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m119[0m - [1mLoading dataset from `filepath` and `label` columns[0m
+    [32m2025-02-01 22:44:50.407[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mload_dataset[0m:[36m153[0m - [1mCreating new learner[0m
+    [32m2025-02-01 22:44:50.872[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_optimize_learner[0m:[36m97[0m - [1mEnabled mixed precision training[0m
+    [32m2025-02-01 22:44:50.873[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36m_finalize_setup[0m:[36m105[0m - [1mDone. Ready to train.[0m
+
+
+Let's inspect one batch of the train set.
+
+
+```python
+al.show_batch()
+```
+
+
+    
+![png](active_learning_files/active_learning_7_0.png)
+    
+
+
+You can inspect the train and validation sets too.
+
+
+```python
+al.train_set
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>74</th>
+      <td>data/imagenette/train/n03445777/n03445777_1058...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>36</th>
+      <td>data/imagenette/train/n03000684/n03000684_1404...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>68</th>
+      <td>data/imagenette/train/n03425413/n03425413_2060...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>54</th>
+      <td>data/imagenette/train/n03417042/n03417042_3669...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>data/imagenette/train/n02979186/n02979186_1658...</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>42</th>
+      <td>data/imagenette/train/n03028079/n03028079_1565...</td>
+      <td>church</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>data/imagenette/train/n03000684/n03000684_9935...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>data/imagenette/train/n03394916/n03394916_5292...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>59</th>
+      <td>data/imagenette/train/n03417042/n03417042_79.JPEG</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/train/n02102040/n02102040_2788...</td>
+      <td>English springer</td>
+    </tr>
+  </tbody>
+</table>
+<p>80 rows × 2 columns</p>
+</div>
+
+
+
+
+```python
+al.valid_set
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>96</th>
+      <td>data/imagenette/train/n01440764/n01440764_3153...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>73</th>
+      <td>data/imagenette/train/n03445777/n03445777_4615...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>67</th>
+      <td>data/imagenette/train/n03425413/n03425413_2016...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>data/imagenette/train/n03394916/n03394916_3273...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>63</th>
+      <td>data/imagenette/train/n03425413/n03425413_1357...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>52</th>
+      <td>data/imagenette/train/n03417042/n03417042_2137...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>78</th>
+      <td>data/imagenette/train/n03445777/n03445777_1806...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>data/imagenette/train/n03394916/n03394916_6099...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>data/imagenette/train/n03394916/n03394916_4308...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>93</th>
+      <td>data/imagenette/train/n01440764/n01440764_1383...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>60</th>
+      <td>data/imagenette/train/n03425413/n03425413_4937...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>data/imagenette/train/n03394916/n03394916_4065...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>33</th>
+      <td>data/imagenette/train/n03000684/n03000684_2624...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>data/imagenette/train/n02102040/n02102040_1388...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>38</th>
+      <td>data/imagenette/train/n03000684/n03000684_1371...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>61</th>
+      <td>data/imagenette/train/n03425413/n03425413_2658...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>39</th>
+      <td>data/imagenette/train/n03000684/n03000684_2753...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>data/imagenette/train/n02102040/n02102040_8296...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>62</th>
+      <td>data/imagenette/train/n03425413/n03425413_1759...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>40</th>
+      <td>data/imagenette/train/n03028079/n03028079_3132...</td>
+      <td>church</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Train 
+
+Now that we have the initial dataset, we can train the model.
+
+But first, let's check the optimal learning rate for the model.
+
+
+```python
+al.lr_find()
+```
+
+    [32m2025-02-01 22:45:36.137[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m194[0m - [1mFinding optimal learning rate[0m
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+
+
+
+
+
+
+    [32m2025-02-01 22:45:41.335[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlr_find[0m:[36m196[0m - [1mOptimal learning rate: 0.0030199517495930195[0m
+
+
+
+    
+![png](active_learning_files/active_learning_12_4.png)
+    
+
+
+Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.
+
+
+```python
+al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)
+```
+
+    [32m2025-02-01 22:46:00.935[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m207[0m - [1mTraining head for 3 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m208[0m - [1mTraining model end-to-end for 10 epochs[0m
+    [32m2025-02-01 22:46:00.936[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mtrain[0m:[36m209[0m - [1mLearning rate: 0.005 with one-cycle learning rate scheduler[0m
+
+
+
+
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+
+
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>3.195328</td>
+      <td>1.852943</td>
+      <td>0.350000</td>
+      <td>00:01</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2.282106</td>
+      <td>0.489679</td>
+      <td>0.850000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>1.562541</td>
+      <td>0.170412</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+    
+![png](active_learning_files/active_learning_14_3.png)
+    
+
+
+
+
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+
+
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0.238324</td>
+      <td>0.192112</td>
+      <td>0.900000</td>
+      <td>00:01</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0.227803</td>
+      <td>0.171933</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>0.238925</td>
+      <td>0.134237</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>0.181410</td>
+      <td>0.155849</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>0.234001</td>
+      <td>0.228540</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>0.229287</td>
+      <td>0.266996</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>0.218886</td>
+      <td>0.201421</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>0.199587</td>
+      <td>0.219203</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>0.193316</td>
+      <td>0.216598</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>0.176088</td>
+      <td>0.222188</td>
+      <td>0.950000</td>
+      <td>00:00</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+    
+![png](active_learning_files/active_learning_14_6.png)
+    
+
+
+## Evaluate
+
+Now that we have a trained model, we can evaluate it on the evaluation set.
+
+
+```python
+evaluation_df = pd.read_parquet("evaluation_samples.parquet")
+evaluation_df
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/val/n03394916/n03394916_32422....</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/val/n03394916/n03394916_69132....</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/val/n03394916/n03394916_33771....</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/val/n03394916/n03394916_29940....</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/val/n03394916/ILSVRC2012_val_0...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3920</th>
+      <td>data/imagenette/val/n02979186/n02979186_27392....</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>3921</th>
+      <td>data/imagenette/val/n02979186/n02979186_2742.JPEG</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>3922</th>
+      <td>data/imagenette/val/n02979186/n02979186_2312.JPEG</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>3923</th>
+      <td>data/imagenette/val/n02979186/n02979186_12822....</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>3924</th>
+      <td>data/imagenette/val/n02979186/ILSVRC2012_val_0...</td>
+      <td>cassette player</td>
+    </tr>
+  </tbody>
+</table>
+<p>3925 rows × 2 columns</p>
+</div>
+
+
+
+
+```python
+al.evaluate(evaluation_df, filepath_col="filepath", label_col="label")
+```
+
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+
+
+
+
+
+
+    [32m2025-02-01 22:46:36.026[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mevaluate[0m:[36m285[0m - [1mAccuracy: 88.69%[0m
+
+
+
+
+
+    0.8868789808917198
+
+
+
+That is a good start. ~88% accuracy is not bad for a first try with only 80 labeled samples. Let's see if we can improve it.
+
+Let's save the summary of the cycle.
+
+
+```python
+al.summary()
+```
+
+    [32m2025-02-01 22:46:58.694[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msummary[0m:[36m578[0m - [1mSaved results to cycle-1_20250201_224658_acc_88.69%_n_100.parquet[0m
+
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>accuracy</th>
+      <th>train_set_size</th>
+      <th>valid_set_size</th>
+      <th>dataset_size</th>
+      <th>num_classes</th>
+      <th>model</th>
+      <th>pretrained</th>
+      <th>loss_fn</th>
+      <th>device</th>
+      <th>seed</th>
+      <th>batch_size</th>
+      <th>image_size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>cycle-1</td>
+      <td>0.886879</td>
+      <td>80</td>
+      <td>20</td>
+      <td>100</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+The above will create a .parquet file with the summary of the cycle. This will be useful for tracking the progress of the active learning process.
+
+## Predict
+
+Using the model, we can predict the labels of the unlabeled samples and get the most impactful samples to label.
+
+
+
+```python
+df = pd.read_parquet("unlabeled_samples.parquet")
+filepaths = df["filepath"].tolist()
+len(filepaths)
+```
+
+
+
+
+    9369
+
+
+
+
+```python
+pred_df = al.predict(filepaths, batch_size=128)
+pred_df
+```
+
+    [32m2025-02-01 22:48:06.456[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 9369 samples[0m
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+
+
+
+
+
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>pred_label</th>
+      <th>pred_conf</th>
+      <th>probs</th>
+      <th>logits</th>
+      <th>embeddings</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/train/n03394916/n03394916_4437...</td>
+      <td>French horn</td>
+      <td>0.9994</td>
+      <td>[0.0, 0.9994, 0.0003, 0.0001, 0.0, 0.0, 0.0, 0...</td>
+      <td>[-1.0149, 9.7605, 1.5589, 0.7921, -0.7977, -0....</td>
+      <td>[-2.2901, 2.3526, 6.4579, 4.2536, 2.6069, -0.7...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/train/n03394916/n03394916_4241...</td>
+      <td>French horn</td>
+      <td>0.9999</td>
+      <td>[0.0, 0.9999, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0,...</td>
+      <td>[0.1745, 12.1507, -0.4018, -1.8788, 3.0162, -2...</td>
+      <td>[-2.0134, -2.8295, 5.1062, 2.4362, 3.5648, -0....</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/train/n03394916/n03394916_3880...</td>
+      <td>French horn</td>
+      <td>0.5876</td>
+      <td>[0.0005, 0.5876, 0.0003, 0.1923, 0.0571, 0.006...</td>
+      <td>[-2.0997, 5.0091, -2.5624, 3.8921, 2.677, 0.56...</td>
+      <td>[-1.2764, -1.7355, -0.3358, 3.026, -0.7665, -2...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/train/n03394916/n03394916_2412...</td>
+      <td>French horn</td>
+      <td>0.9960</td>
+      <td>[0.0, 0.996, 0.0013, 0.0006, 0.0018, 0.0001, 0...</td>
+      <td>[-4.1342, 8.7273, 2.0689, 1.2724, 2.4322, -1.1...</td>
+      <td>[-3.6719, 0.988, 3.3448, -2.0975, 2.0027, 2.49...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/train/n03394916/n03394916_1128...</td>
+      <td>French horn</td>
+      <td>0.9870</td>
+      <td>[0.0001, 0.987, 0.0, 0.0113, 0.0012, 0.0004, 0...</td>
+      <td>[-0.5818, 9.1891, -2.0218, 4.7223, 2.4576, 1.4...</td>
+      <td>[3.1939, -1.9423, 1.637, 1.6741, 1.6321, -1.24...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>9364</th>
+      <td>data/imagenette/train/n02979186/n02979186_8089...</td>
+      <td>cassette player</td>
+      <td>0.9989</td>
+      <td>[0.0, 0.0, 0.9989, 0.0001, 0.0, 0.0, 0.0009, 0...</td>
+      <td>[-0.1709, -1.1193, 10.3886, 1.022, -3.1766, -2...</td>
+      <td>[-1.399, 0.6354, -0.2404, 0.1646, -0.2866, 4.4...</td>
+    </tr>
+    <tr>
+      <th>9365</th>
+      <td>data/imagenette/train/n02979186/n02979186_1944...</td>
+      <td>cassette player</td>
+      <td>0.9975</td>
+      <td>[0.0, 0.0001, 0.9975, 0.0019, 0.0, 0.0002, 0.0...</td>
+      <td>[-1.2339, -0.2522, 9.287, 3.0204, -2.5014, 0.7...</td>
+      <td>[1.6241, 1.8808, 2.1247, 2.9433, -2.5819, 0.01...</td>
+    </tr>
+    <tr>
+      <th>9366</th>
+      <td>data/imagenette/train/n02979186/n02979186_1107...</td>
+      <td>cassette player</td>
+      <td>0.9965</td>
+      <td>[0.0003, 0.0002, 0.9965, 0.0023, 0.0003, 0.0, ...</td>
+      <td>[0.3064, -0.3192, 8.3105, 2.2191, 0.0921, -3.3...</td>
+      <td>[-1.6214, -0.333, -0.5618, 5.5305, -2.7947, 1....</td>
+    </tr>
+    <tr>
+      <th>9367</th>
+      <td>data/imagenette/train/n02979186/n02979186_2938...</td>
+      <td>cassette player</td>
+      <td>0.9990</td>
+      <td>[0.0002, 0.0004, 0.999, 0.0002, 0.0, 0.0, 0.0,...</td>
+      <td>[0.297, 1.1789, 9.0353, 0.3745, -1.4599, -1.22...</td>
+      <td>[-3.9943, 2.4609, -0.4746, 5.7178, -1.1348, -2...</td>
+    </tr>
+    <tr>
+      <th>9368</th>
+      <td>data/imagenette/train/n02979186/n02979186_93.JPEG</td>
+      <td>cassette player</td>
+      <td>0.9983</td>
+      <td>[0.0, 0.0, 0.9983, 0.0012, 0.0001, 0.0, 0.0002...</td>
+      <td>[-0.7291, -0.914, 9.3241, 2.5684, -0.2463, -2....</td>
+      <td>[-0.3718, 2.5391, -0.3689, 5.6201, -0.3824, 0....</td>
+    </tr>
+  </tbody>
+</table>
+<p>9369 rows × 6 columns</p>
+</div>
+
+
+
+## Sample
+
+With the predicted labels, we can sample the most impactful samples to label using active learning strategies.
+
+For this example, we will use the `sample_combination` strategy to sample 50 samples from each strategy listed below in the specified proportions.
+
+
+```python
+samples = al.sample_combination(
+    pred_df,
+    num_samples=50,
+    combination={
+        "least-confidence": 0.4,
+        "ratio-of-confidence": 0.2,
+        "entropy": 0.2,
+        "model-based-outlier": 0.1,
+        "random": 0.1,
+    },
+)
+
+samples
+```
+
+    [32m2025-02-01 22:48:54.961[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_combination[0m:[36m498[0m - [1mUsing combination sampling to get 50 samples[0m
+    [32m2025-02-01 22:48:54.965[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m305[0m - [1mUsing least confidence strategy to get top 20 samples[0m
+    [32m2025-02-01 22:48:54.981[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m328[0m - [1mUsing ratio of confidence strategy to get top 10 samples[0m
+    [32m2025-02-01 22:48:55.030[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_uncertain[0m:[36m342[0m - [1mUsing entropy strategy to get top 10 samples[0m
+    /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: divide by zero encountered in log2
+      df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
+    /Users/dnth/Desktop/active-vision/src/active_vision/core.py:345: RuntimeWarning: invalid value encountered in multiply
+      df.loc[:, "score"] = df["probs"].apply(lambda x: -np.sum(x * np.log2(x)))
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_diverse[0m:[36m388[0m - [1mUsing model-based outlier strategy to get top 5 samples[0m
+    [32m2025-02-01 22:48:55.067[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mpredict[0m:[36m216[0m - [1mRunning inference on 20 samples[0m
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+      warnings.warn(
+    /Users/dnth/Desktop/active-vision/.venv/lib/python3.12/site-packages/torch/amp/grad_scaler.py:132: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+      warnings.warn(
+
+
+
+
+<style>
+    /* Turns off some styling */
+    progress {
+        /* gets rid of default border in Firefox and Opera. */
+        border: none;
+        /* Needs to be in here for Safari polyfill so background images work as expected. */
+        background-size: auto;
+    }
+    progress:not([value]), progress:not([value])::-webkit-progress-bar {
+        background: repeating-linear-gradient(45deg, #7e7e7e, #7e7e7e 10px, #5c5c5c 10px, #5c5c5c 20px);
+    }
+    .progress-bar-interrupted, .progress-bar-interrupted::-webkit-progress-bar {
+        background: #F44336;
+    }
+</style>
+
+
+
+
+
+
+
+    [32m2025-02-01 22:48:55.347[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36msample_random[0m:[36m460[0m - [1mSampling 5 random samples[0m
+
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>strategy</th>
+      <th>score</th>
+      <th>pred_label</th>
+      <th>pred_conf</th>
+      <th>probs</th>
+      <th>logits</th>
+      <th>embeddings</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/train/n02979186/n02979186_1337...</td>
+      <td>least-confidence</td>
+      <td>0.7832</td>
+      <td>church</td>
+      <td>0.2168</td>
+      <td>[0.1246, 0.1754, 0.1861, 0.0186, 0.2168, 0.022...</td>
+      <td>[1.1863, 1.5285, 1.5874, -0.7142, 1.7403, -0.5...</td>
+      <td>[0.2377, -1.946, 0.2599, 2.6317, 0.0457, -0.39...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/train/n03417042/n03417042_6809...</td>
+      <td>least-confidence</td>
+      <td>0.7671</td>
+      <td>English springer</td>
+      <td>0.2329</td>
+      <td>[0.2329, 0.0563, 0.0152, 0.1935, 0.1016, 0.165...</td>
+      <td>[1.6971, 0.2781, -1.0305, 1.5121, 0.8675, 1.35...</td>
+      <td>[-3.1134, -1.0297, -2.949, -0.0299, -2.6318, -...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/train/n03417042/n03417042_1228...</td>
+      <td>least-confidence</td>
+      <td>0.7520</td>
+      <td>garbage truck</td>
+      <td>0.2480</td>
+      <td>[0.0136, 0.0788, 0.1113, 0.2256, 0.134, 0.248,...</td>
+      <td>[-1.3881, 0.3689, 0.7144, 1.4204, 0.8993, 1.51...</td>
+      <td>[-3.2014, -0.3192, 0.4875, 1.5605, -2.9503, 0....</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/train/n03445777/ILSVRC2012_val...</td>
+      <td>least-confidence</td>
+      <td>0.7489</td>
+      <td>parachute</td>
+      <td>0.2511</td>
+      <td>[0.0523, 0.0888, 0.1879, 0.2397, 0.0256, 0.048...</td>
+      <td>[0.2414, 0.771, 1.5211, 1.7646, -0.4716, 0.173...</td>
+      <td>[-2.1577, -0.6424, 0.7163, 4.899, 2.0297, -0.0...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/train/n01440764/n01440764_6118...</td>
+      <td>least-confidence</td>
+      <td>0.7468</td>
+      <td>parachute</td>
+      <td>0.2532</td>
+      <td>[0.2469, 0.1803, 0.015, 0.0427, 0.0, 0.0004, 0...</td>
+      <td>[2.4125, 2.098, -0.3905, 0.6568, -6.4931, -4.0...</td>
+      <td>[2.3019, -0.1646, 0.0037, 4.9036, 0.2177, -0.8...</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>data/imagenette/train/n03417042/n03417042_3796...</td>
+      <td>least-confidence</td>
+      <td>0.7390</td>
+      <td>church</td>
+      <td>0.2610</td>
+      <td>[0.0097, 0.0347, 0.2573, 0.0808, 0.261, 0.1535...</td>
+      <td>[-1.1992, 0.0708, 2.0745, 0.9159, 2.0887, 1.55...</td>
+      <td>[-2.1991, -2.0034, -0.235, 2.4318, 0.3569, -0....</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>data/imagenette/train/n03425413/n03425413_1459...</td>
+      <td>least-confidence</td>
+      <td>0.7385</td>
+      <td>chain saw</td>
+      <td>0.2615</td>
+      <td>[0.2496, 0.0804, 0.0628, 0.2615, 0.0127, 0.047...</td>
+      <td>[1.951, 0.8179, 0.5707, 1.9976, -1.026, 0.2976...</td>
+      <td>[-2.4328, -1.083, -0.361, 3.5946, 0.9601, -2.1...</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>data/imagenette/train/n03445777/n03445777_2207...</td>
+      <td>least-confidence</td>
+      <td>0.7263</td>
+      <td>parachute</td>
+      <td>0.2737</td>
+      <td>[0.019, 0.1925, 0.1283, 0.0205, 0.0706, 0.0071...</td>
+      <td>[-0.5736, 1.7433, 1.3381, -0.4974, 0.7405, -1....</td>
+      <td>[0.9713, -3.2046, -0.5145, 2.0419, 0.7177, -0....</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>data/imagenette/train/n02102040/n02102040_1076...</td>
+      <td>least-confidence</td>
+      <td>0.7260</td>
+      <td>chain saw</td>
+      <td>0.2740</td>
+      <td>[0.2575, 0.1359, 0.0061, 0.274, 0.0956, 0.001,...</td>
+      <td>[2.2694, 1.6301, -1.4805, 2.3315, 1.2792, -3.2...</td>
+      <td>[2.5813, -0.1416, -2.0389, -2.2112, -1.5039, 3...</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>data/imagenette/train/n03000684/n03000684_1466...</td>
+      <td>least-confidence</td>
+      <td>0.7233</td>
+      <td>gas pump</td>
+      <td>0.2767</td>
+      <td>[0.0088, 0.1782, 0.0831, 0.1853, 0.0177, 0.040...</td>
+      <td>[-1.5001, 1.5067, 0.7434, 1.546, -0.8016, 0.02...</td>
+      <td>[-1.8619, -0.0667, 1.8241, -3.3802, 1.3863, 2....</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>data/imagenette/train/n03425413/n03425413_1864...</td>
+      <td>least-confidence</td>
+      <td>0.7206</td>
+      <td>garbage truck</td>
+      <td>0.2794</td>
+      <td>[0.0078, 0.0121, 0.2249, 0.057, 0.1745, 0.2794...</td>
+      <td>[-1.3753, -0.9285, 1.9904, 0.6176, 1.7364, 2.2...</td>
+      <td>[0.5058, -1.2274, -1.1775, 0.4627, 0.0353, -0....</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>data/imagenette/train/n03417042/n03417042_1223...</td>
+      <td>least-confidence</td>
+      <td>0.7168</td>
+      <td>gas pump</td>
+      <td>0.2832</td>
+      <td>[0.025, 0.2146, 0.0005, 0.2588, 0.016, 0.1269,...</td>
+      <td>[-0.9034, 1.2471, -4.8891, 1.4342, -1.3511, 0....</td>
+      <td>[1.5009, -3.5794, 0.7903, -4.7695, 0.7535, 1.3...</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>data/imagenette/train/n01440764/n01440764_5668...</td>
+      <td>least-confidence</td>
+      <td>0.7080</td>
+      <td>parachute</td>
+      <td>0.2920</td>
+      <td>[0.0844, 0.2893, 0.0014, 0.073, 0.0001, 0.0007...</td>
+      <td>[1.9209, 3.153, -2.2034, 1.7755, -5.193, -2.89...</td>
+      <td>[1.7147, -3.039, -2.7734, 4.8007, -2.612, -1.4...</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>data/imagenette/train/n03425413/n03425413_88.JPEG</td>
+      <td>least-confidence</td>
+      <td>0.7071</td>
+      <td>chain saw</td>
+      <td>0.2929</td>
+      <td>[0.0103, 0.0188, 0.0715, 0.2929, 0.0373, 0.276...</td>
+      <td>[-1.1609, -0.5619, 0.7725, 2.1827, 0.1219, 2.1...</td>
+      <td>[-1.8984, -1.801, -0.5466, 0.1875, -0.2696, -2...</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>data/imagenette/train/n03425413/n03425413_6234...</td>
+      <td>least-confidence</td>
+      <td>0.7045</td>
+      <td>cassette player</td>
+      <td>0.2955</td>
+      <td>[0.0036, 0.0121, 0.2955, 0.2136, 0.0019, 0.001...</td>
+      <td>[-0.5274, 0.6789, 3.8764, 3.5516, -1.1846, -1....</td>
+      <td>[-1.1586, -1.5979, 0.6346, 4.4901, 0.9681, -2....</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>data/imagenette/train/n03417042/n03417042_1668...</td>
+      <td>least-confidence</td>
+      <td>0.7036</td>
+      <td>chain saw</td>
+      <td>0.2964</td>
+      <td>[0.0254, 0.0108, 0.1052, 0.2964, 0.0089, 0.291...</td>
+      <td>[0.6178, -0.2364, 2.0373, 3.0728, -0.438, 3.05...</td>
+      <td>[-1.9726, -4.8946, 0.8208, 2.5173, -3.8419, -2...</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>data/imagenette/train/n03445777/n03445777_4247...</td>
+      <td>least-confidence</td>
+      <td>0.7012</td>
+      <td>golf ball</td>
+      <td>0.2988</td>
+      <td>[0.0429, 0.0009, 0.258, 0.0017, 0.2062, 0.0048...</td>
+      <td>[1.4205, -2.437, 3.2146, -1.82, 2.9905, -0.761...</td>
+      <td>[-1.1034, -0.4575, -0.8034, 3.1827, -0.7845, -...</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>data/imagenette/train/n03445777/n03445777_646....</td>
+      <td>least-confidence</td>
+      <td>0.7008</td>
+      <td>cassette player</td>
+      <td>0.2992</td>
+      <td>[0.0756, 0.0503, 0.2992, 0.2987, 0.006, 0.0125...</td>
+      <td>[1.1265, 0.7181, 2.5015, 2.5, -1.4094, -0.6715...</td>
+      <td>[-2.646, 0.4589, 0.6154, 3.3417, -0.0063, -1.9...</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>data/imagenette/train/n02979186/n02979186_9394...</td>
+      <td>least-confidence</td>
+      <td>0.6984</td>
+      <td>church</td>
+      <td>0.3016</td>
+      <td>[0.2609, 0.0025, 0.0002, 0.0618, 0.3016, 0.004...</td>
+      <td>[2.7936, -1.8698, -4.2219, 1.3531, 2.9384, -1....</td>
+      <td>[1.2048, -4.0506, -1.426, 1.0096, 0.5019, -0.3...</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>data/imagenette/train/n03417042/n03417042_1764...</td>
+      <td>least-confidence</td>
+      <td>0.6982</td>
+      <td>chain saw</td>
+      <td>0.3018</td>
+      <td>[0.0148, 0.0047, 0.1673, 0.3018, 0.0515, 0.200...</td>
+      <td>[-0.9573, -2.1062, 1.4707, 2.0609, 0.2926, 1.6...</td>
+      <td>[-4.4805, -0.7656, 2.3438, -2.386, -1.4532, -1...</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>data/imagenette/train/n03028079/n03028079_236....</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9980</td>
+      <td>church</td>
+      <td>0.4982</td>
+      <td>[0.0012, 0.0002, 0.0009, 0.0004, 0.4982, 0.001...</td>
+      <td>[0.1461, -1.7966, -0.1312, -0.9224, 6.1598, -0...</td>
+      <td>[-1.9158, 0.0293, -2.9185, 5.4466, 1.4893, -4....</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>data/imagenette/train/n01440764/n01440764_8849...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9965</td>
+      <td>French horn</td>
+      <td>0.3182</td>
+      <td>[0.0008, 0.3182, 0.0064, 0.1057, 0.0001, 0.001...</td>
+      <td>[-2.4424, 3.6063, -0.2949, 2.5045, -4.2242, -2...</td>
+      <td>[1.7128, 1.7141, 0.4452, 4.5691, -3.717, -0.81...</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>data/imagenette/train/n03425413/n03425413_2131...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9951</td>
+      <td>gas pump</td>
+      <td>0.4921</td>
+      <td>[0.0021, 0.0002, 0.0014, 0.0006, 0.4897, 0.002...</td>
+      <td>[-0.2209, -2.4339, -0.5894, -1.4373, 5.2495, 0...</td>
+      <td>[1.8346, -2.7913, 1.1247, 3.9242, 3.2139, -1.9...</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>data/imagenette/train/n03417042/n03417042_1025...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9949</td>
+      <td>garbage truck</td>
+      <td>0.4712</td>
+      <td>[0.0, 0.0367, 0.0177, 0.4688, 0.0006, 0.4712, ...</td>
+      <td>[-5.5346, 2.1603, 1.4321, 4.7075, -1.9854, 4.7...</td>
+      <td>[-2.0354, -0.3725, 3.4936, -1.2543, -1.7814, -...</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>data/imagenette/train/n03445777/n03445777_8544...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9929</td>
+      <td>golf ball</td>
+      <td>0.4791</td>
+      <td>[0.0019, 0.0, 0.4757, 0.0003, 0.0244, 0.0002, ...</td>
+      <td>[0.2898, -4.0663, 5.7935, -1.5026, 2.8246, -1....</td>
+      <td>[-1.6029, -0.0789, -1.3203, 2.3646, -1.7308, -...</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>data/imagenette/train/n02979186/n02979186_1028...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9928</td>
+      <td>cassette player</td>
+      <td>0.4292</td>
+      <td>[0.0017, 0.0804, 0.4292, 0.4261, 0.008, 0.0001...</td>
+      <td>[-1.9055, 1.9553, 3.6303, 3.6232, -0.347, -5.0...</td>
+      <td>[0.661, -0.879, 0.9711, 6.3615, -1.8835, 0.572...</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>data/imagenette/train/n02979186/n02979186_174....</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9928</td>
+      <td>gas pump</td>
+      <td>0.4728</td>
+      <td>[0.0016, 0.001, 0.4694, 0.0023, 0.0103, 0.0006...</td>
+      <td>[-0.8054, -1.2681, 4.8906, -0.434, 1.0697, -1....</td>
+      <td>[-2.2132, 1.2331, 0.0182, 3.1745, 1.2983, -1.4...</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>data/imagenette/train/n03417042/n03417042_7005...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9905</td>
+      <td>garbage truck</td>
+      <td>0.4836</td>
+      <td>[0.0094, 0.0002, 0.479, 0.0178, 0.0004, 0.4836...</td>
+      <td>[0.9137, -2.959, 4.8444, 1.5534, -2.1481, 4.85...</td>
+      <td>[-5.0773, -1.4379, 0.4747, 2.3539, -0.0054, -0...</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>data/imagenette/train/n03028079/n03028079_7073...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9902</td>
+      <td>parachute</td>
+      <td>0.3277</td>
+      <td>[0.1374, 0.0006, 0.1855, 0.0042, 0.3245, 0.000...</td>
+      <td>[3.0215, -2.4062, 3.3213, -0.4689, 3.8805, -2....</td>
+      <td>[-2.5169, -0.1161, -2.0849, 6.913, 0.1524, -3....</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>data/imagenette/train/n01440764/n01440764_3428...</td>
+      <td>ratio-of-confidence</td>
+      <td>0.9895</td>
+      <td>tench</td>
+      <td>0.4676</td>
+      <td>[0.0179, 0.0016, 0.0007, 0.0002, 0.0, 0.0001, ...</td>
+      <td>[2.3502, -0.0881, -0.8439, -2.1083, -6.3656, -...</td>
+      <td>[2.0489, -0.5436, -1.8257, 8.6326, -2.1322, -1...</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>data/imagenette/train/n03445777/n03445777_4554...</td>
+      <td>entropy</td>
+      <td>0.8296</td>
+      <td>golf ball</td>
+      <td>0.3049</td>
+      <td>[0.0693, 0.081, 0.0229, 0.1553, 0.1212, 0.1887...</td>
+      <td>[0.4616, 0.6175, -0.6483, 1.2682, 1.0204, 1.46...</td>
+      <td>[0.8206, -0.299, 0.5261, 4.4358, 1.3322, -2.03...</td>
+    </tr>
+    <tr>
+      <th>31</th>
+      <td>data/imagenette/train/n03425413/n03425413_9229...</td>
+      <td>entropy</td>
+      <td>0.8130</td>
+      <td>cassette player</td>
+      <td>0.3564</td>
+      <td>[0.1393, 0.0395, 0.3564, 0.1581, 0.0049, 0.012...</td>
+      <td>[1.1223, -0.138, 2.062, 1.2494, -2.2206, -1.30...</td>
+      <td>[0.5329, -0.7068, 1.3603, 0.652, 0.0198, -1.40...</td>
+    </tr>
+    <tr>
+      <th>32</th>
+      <td>data/imagenette/train/n03425413/n03425413_287....</td>
+      <td>entropy</td>
+      <td>0.7982</td>
+      <td>cassette player</td>
+      <td>0.3625</td>
+      <td>[0.1304, 0.0647, 0.3625, 0.0102, 0.007, 0.0077...</td>
+      <td>[1.5995, 0.8984, 2.6221, -0.9448, -1.3237, -1....</td>
+      <td>[-0.0355, 1.2429, 2.0399, 1.95, -0.4611, -2.16...</td>
+    </tr>
+    <tr>
+      <th>33</th>
+      <td>data/imagenette/train/n03417042/n03417042_908....</td>
+      <td>entropy</td>
+      <td>0.7812</td>
+      <td>French horn</td>
+      <td>0.3538</td>
+      <td>[0.0043, 0.3538, 0.1463, 0.149, 0.1439, 0.1248...</td>
+      <td>[-2.7491, 1.661, 0.7778, 0.7963, 0.7618, 0.618...</td>
+      <td>[-7.2806, -0.9896, 1.8656, -2.0554, -3.9013, -...</td>
+    </tr>
+    <tr>
+      <th>34</th>
+      <td>data/imagenette/train/n02979186/n02979186_465....</td>
+      <td>entropy</td>
+      <td>0.7801</td>
+      <td>cassette player</td>
+      <td>0.3180</td>
+      <td>[0.01, 0.0162, 0.318, 0.178, 0.243, 0.041, 0.0...</td>
+      <td>[-1.1959, -0.7156, 2.2638, 1.6833, 1.9948, 0.2...</td>
+      <td>[-1.0496, -0.4233, -0.2356, 1.7336, 0.0313, -1...</td>
+    </tr>
+    <tr>
+      <th>35</th>
+      <td>data/imagenette/train/n03417042/n03417042_5249...</td>
+      <td>entropy</td>
+      <td>0.7770</td>
+      <td>gas pump</td>
+      <td>0.3602</td>
+      <td>[0.2176, 0.0115, 0.075, 0.0565, 0.0042, 0.1158...</td>
+      <td>[2.2736, -0.6667, 1.2081, 0.9261, -1.6621, 1.6...</td>
+      <td>[-2.3321, -1.439, 0.5272, -1.0743, 0.0884, 1.3...</td>
+    </tr>
+    <tr>
+      <th>36</th>
+      <td>data/imagenette/train/n02979186/n02979186_603....</td>
+      <td>entropy</td>
+      <td>0.7659</td>
+      <td>parachute</td>
+      <td>0.3955</td>
+      <td>[0.0246, 0.0061, 0.105, 0.1808, 0.058, 0.0508,...</td>
+      <td>[-0.1705, -1.567, 1.2804, 1.8236, 0.6872, 0.55...</td>
+      <td>[-1.8714, -1.0384, 0.5632, 5.8721, -1.3883, -2...</td>
+    </tr>
+    <tr>
+      <th>37</th>
+      <td>data/imagenette/train/n03000684/n03000684_1852...</td>
+      <td>entropy</td>
+      <td>0.7570</td>
+      <td>cassette player</td>
+      <td>0.3107</td>
+      <td>[0.0748, 0.0867, 0.3107, 0.2456, 0.0107, 0.001...</td>
+      <td>[0.1843, 0.3323, 1.609, 1.3735, -1.7552, -3.56...</td>
+      <td>[0.7092, 4.0615, 0.0916, 2.6069, -0.8592, 1.58...</td>
+    </tr>
+    <tr>
+      <th>38</th>
+      <td>data/imagenette/train/n03417042/n03417042_4126...</td>
+      <td>entropy</td>
+      <td>0.7549</td>
+      <td>gas pump</td>
+      <td>0.3585</td>
+      <td>[0.013, 0.0954, 0.153, 0.0395, 0.1221, 0.1953,...</td>
+      <td>[-0.5105, 1.4799, 1.9525, 0.598, 1.7271, 2.196...</td>
+      <td>[-2.1074, -0.719, 0.3273, -4.9685, -0.2971, 0....</td>
+    </tr>
+    <tr>
+      <th>39</th>
+      <td>data/imagenette/train/n02979186/n02979186_1288...</td>
+      <td>entropy</td>
+      <td>0.7484</td>
+      <td>English springer</td>
+      <td>0.4436</td>
+      <td>[0.4436, 0.1239, 0.1386, 0.0856, 0.0053, 0.019...</td>
+      <td>[3.0178, 1.7421, 1.8544, 1.3729, -1.4053, -0.1...</td>
+      <td>[-1.5024, -1.7685, -1.1186, 3.3219, -0.2236, -...</td>
+    </tr>
+    <tr>
+      <th>40</th>
+      <td>data/imagenette/train/n03394916/n03394916_2325...</td>
+      <td>model-based-outlier</td>
+      <td>0.9000</td>
+      <td>parachute</td>
+      <td>0.4584</td>
+      <td>[0.0077, 0.4082, 0.0652, 0.0305, 0.0034, 0.002...</td>
+      <td>[0.0285, 3.9961, 2.1624, 1.4036, -0.798, -1.07...</td>
+      <td>[-1.8628, 0.4449, 2.5449, 4.2519, 0.3109, -0.2...</td>
+    </tr>
+    <tr>
+      <th>41</th>
+      <td>data/imagenette/train/n03888257/n03888257_3037...</td>
+      <td>model-based-outlier</td>
+      <td>0.9000</td>
+      <td>parachute</td>
+      <td>0.9985</td>
+      <td>[0.0002, 0.0001, 0.0, 0.0001, 0.0, 0.0001, 0.0...</td>
+      <td>[1.795, 1.3068, -5.9289, 0.588, -0.2612, 0.439...</td>
+      <td>[-0.5929, -1.6006, 0.4943, -1.2933, 2.7818, -0...</td>
+    </tr>
+    <tr>
+      <th>42</th>
+      <td>data/imagenette/train/n02102040/n02102040_3157...</td>
+      <td>model-based-outlier</td>
+      <td>0.9000</td>
+      <td>English springer</td>
+      <td>0.9990</td>
+      <td>[0.999, 0.0001, 0.0, 0.0001, 0.0, 0.0, 0.0002,...</td>
+      <td>[10.0692, 0.2787, -1.2835, 0.6064, -1.1916, -0...</td>
+      <td>[2.3258, -3.616, -0.5858, 6.3145, 1.105, -0.14...</td>
+    </tr>
+    <tr>
+      <th>43</th>
+      <td>data/imagenette/train/n03394916/n03394916_4728...</td>
+      <td>model-based-outlier</td>
+      <td>0.9000</td>
+      <td>parachute</td>
+      <td>0.4831</td>
+      <td>[0.0488, 0.2531, 0.0026, 0.0485, 0.0044, 0.025...</td>
+      <td>[1.0755, 2.7207, -1.8696, 1.0683, -1.3336, 0.4...</td>
+      <td>[0.1506, -1.9805, 0.9849, 3.5843, -0.0043, -1....</td>
+    </tr>
+    <tr>
+      <th>44</th>
+      <td>data/imagenette/train/n03417042/n03417042_1021...</td>
+      <td>model-based-outlier</td>
+      <td>0.9000</td>
+      <td>garbage truck</td>
+      <td>0.9537</td>
+      <td>[0.0086, 0.0002, 0.0075, 0.0023, 0.0007, 0.953...</td>
+      <td>[2.0034, -1.9979, 1.8706, 0.71, -0.4847, 6.717...</td>
+      <td>[-3.3996, -1.5936, 0.7646, 2.4388, -1.7322, -2...</td>
+    </tr>
+    <tr>
+      <th>45</th>
+      <td>data/imagenette/train/n03417042/n03417042_1858...</td>
+      <td>random</td>
+      <td>0.0000</td>
+      <td>garbage truck</td>
+      <td>0.7858</td>
+      <td>[0.0143, 0.0061, 0.0087, 0.1633, 0.0015, 0.785...</td>
+      <td>[0.3009, -0.5477, -0.1979, 2.7391, -1.9379, 4....</td>
+      <td>[-3.5253, -2.8105, 3.3649, -1.5904, -2.0809, -...</td>
+    </tr>
+    <tr>
+      <th>46</th>
+      <td>data/imagenette/train/n03394916/n03394916_2376...</td>
+      <td>random</td>
+      <td>0.0000</td>
+      <td>French horn</td>
+      <td>1.0000</td>
+      <td>[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>
+      <td>[-3.3366, 12.358, 0.1247, 0.7122, 1.0722, -2.4...</td>
+      <td>[-0.7454, -2.0169, 5.2131, 1.7518, 1.3361, 0.4...</td>
+    </tr>
+    <tr>
+      <th>47</th>
+      <td>data/imagenette/train/n01440764/n01440764_1166...</td>
+      <td>random</td>
+      <td>0.0000</td>
+      <td>tench</td>
+      <td>0.9899</td>
+      <td>[0.0038, 0.0015, 0.0001, 0.0002, 0.0, 0.0, 0.0...</td>
+      <td>[2.0583, 1.1105, -1.2277, -0.7113, -5.8862, -2...</td>
+      <td>[4.0684, -1.9906, -0.8653, 5.5249, -1.2073, -0...</td>
+    </tr>
+    <tr>
+      <th>48</th>
+      <td>data/imagenette/train/n02979186/n02979186_1834...</td>
+      <td>random</td>
+      <td>0.0000</td>
+      <td>cassette player</td>
+      <td>0.9763</td>
+      <td>[0.0001, 0.0, 0.9763, 0.0001, 0.0009, 0.0, 0.0...</td>
+      <td>[-0.2952, -2.528, 8.5269, -0.8405, 1.5539, -1....</td>
+      <td>[-1.0581, 0.6868, 0.1566, 2.4419, 1.0955, 0.19...</td>
+    </tr>
+    <tr>
+      <th>49</th>
+      <td>data/imagenette/train/n03888257/n03888257_1158...</td>
+      <td>random</td>
+      <td>0.0000</td>
+      <td>parachute</td>
+      <td>1.0000</td>
+      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, ...</td>
+      <td>[0.2342, -3.6737, -3.615, -4.0797, -0.533, 1.2...</td>
+      <td>[-1.6263, 2.0753, -2.3862, -0.6846, -1.6283, -...</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Label
+
+Let's label the samples and save them to a parquet file named `combination.parquet`.
+
+
+```python
+al.label(samples, output_filename="combination.parquet")
+```
+
+    [32m2025-02-01 22:50:11.038[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36mlabel[0m:[36m612[0m - [1mLaunching labeling interface for 50 samples[0m
+
+
+    * Running on local URL:  http://127.0.0.1:7860
+    
+    To create a public link, set `share=True` in `launch()`.
+
+
+
+<div><iframe src="http://127.0.0.1:7860/" width="100%" height="1000" allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" frameborder="0" allowfullscreen></iframe></div>
+
+
+![image-2.png](active_learning_files/image-2.png)
+
+The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.
+
+We can inspect the samples we just labeled.
+
+
+```python
+labeled_df = pd.read_parquet("combination.parquet")
+
+labeled_df
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>filepath</th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>data/imagenette/train/n02979186/n02979186_1337...</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>data/imagenette/train/n03417042/n03417042_6809...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>data/imagenette/train/n03417042/n03417042_1228...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>data/imagenette/train/n03445777/ILSVRC2012_val...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>data/imagenette/train/n01440764/n01440764_6118...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>data/imagenette/train/n03417042/n03417042_3796...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>data/imagenette/train/n03425413/n03425413_1459...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>data/imagenette/train/n03445777/n03445777_2207...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>data/imagenette/train/n02102040/n02102040_1076...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>data/imagenette/train/n03000684/n03000684_1466...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>data/imagenette/train/n03425413/n03425413_1864...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>data/imagenette/train/n03417042/n03417042_1223...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>data/imagenette/train/n01440764/n01440764_5668...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>data/imagenette/train/n03425413/n03425413_88.JPEG</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>data/imagenette/train/n03425413/n03425413_6234...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>data/imagenette/train/n03417042/n03417042_1668...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>data/imagenette/train/n03445777/n03445777_4247...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>data/imagenette/train/n03445777/n03445777_646....</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>data/imagenette/train/n02979186/n02979186_9394...</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>data/imagenette/train/n03417042/n03417042_1764...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>data/imagenette/train/n03028079/n03028079_236....</td>
+      <td>church</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>data/imagenette/train/n01440764/n01440764_8849...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>data/imagenette/train/n03425413/n03425413_2131...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>data/imagenette/train/n03417042/n03417042_1025...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>data/imagenette/train/n03445777/n03445777_8544...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>data/imagenette/train/n02979186/n02979186_1028...</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>data/imagenette/train/n02979186/n02979186_174....</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>data/imagenette/train/n03417042/n03417042_7005...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>data/imagenette/train/n03028079/n03028079_7073...</td>
+      <td>church</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>data/imagenette/train/n01440764/n01440764_3428...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>data/imagenette/train/n03445777/n03445777_4554...</td>
+      <td>golf ball</td>
+    </tr>
+    <tr>
+      <th>31</th>
+      <td>data/imagenette/train/n03425413/n03425413_9229...</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>32</th>
+      <td>data/imagenette/train/n03425413/n03425413_287....</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>33</th>
+      <td>data/imagenette/train/n03417042/n03417042_908....</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>34</th>
+      <td>data/imagenette/train/n02979186/n02979186_465....</td>
+      <td>gas pump</td>
+    </tr>
+    <tr>
+      <th>35</th>
+      <td>data/imagenette/train/n03417042/n03417042_5249...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>36</th>
+      <td>data/imagenette/train/n03000684/n03000684_1852...</td>
+      <td>chain saw</td>
+    </tr>
+    <tr>
+      <th>37</th>
+      <td>data/imagenette/train/n03417042/n03417042_4126...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>38</th>
+      <td>data/imagenette/train/n02979186/n02979186_1288...</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>39</th>
+      <td>data/imagenette/train/n03394916/n03394916_2325...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>40</th>
+      <td>data/imagenette/train/n03888257/n03888257_3037...</td>
+      <td>parachute</td>
+    </tr>
+    <tr>
+      <th>41</th>
+      <td>data/imagenette/train/n02102040/n02102040_3157...</td>
+      <td>English springer</td>
+    </tr>
+    <tr>
+      <th>42</th>
+      <td>data/imagenette/train/n03394916/n03394916_4728...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>43</th>
+      <td>data/imagenette/train/n03417042/n03417042_1021...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>44</th>
+      <td>data/imagenette/train/n03417042/n03417042_1858...</td>
+      <td>garbage truck</td>
+    </tr>
+    <tr>
+      <th>45</th>
+      <td>data/imagenette/train/n03394916/n03394916_2376...</td>
+      <td>French horn</td>
+    </tr>
+    <tr>
+      <th>46</th>
+      <td>data/imagenette/train/n01440764/n01440764_1166...</td>
+      <td>tench</td>
+    </tr>
+    <tr>
+      <th>47</th>
+      <td>data/imagenette/train/n02979186/n02979186_1834...</td>
+      <td>cassette player</td>
+    </tr>
+    <tr>
+      <th>48</th>
+      <td>data/imagenette/train/n03888257/n03888257_1158...</td>
+      <td>parachute</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Add to train set
+
+Now that we have labeled the samples, we can add them to the train set and save it to a parquet file named `active_labeled.parquet`.
+
+
+```python
+al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")
+```
+
+    [32m2025-02-01 22:55:13.929[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1060[0m - [1mAdding 49 samples to dataset[0m
+    [32m2025-02-01 22:55:13.932[0m | [1mINFO    [0m | [36mactive_vision.core[0m:[36madd_to_dataset[0m:[36m1068[0m - [1mSaved dataset to active_labeled.parquet[0m
+
+
+## Repeat
+
+Congratulations! You have completed the first cycle of active learning. We now have a small dataset and a trained model. Now whats left is to repeat the process of predicting, sampling, labeling, and adding to the train set until we have a good model.
+
+## Tracking Progress
+
+You can track the progress of the active learning process by inspecting the .parquet files saved when running the `al.summary()` function.
+
+In this example, I ran 4 cycles of active learning which resulted in the following files:
+
+- `cycle-1_20250201_224658_acc_88.69%_n_100.parquet`
+- `cycle-2_20250201_225913_acc_92.18%_n_149.parquet`
+- `cycle-3_20250201_232340_acc_93.45%_n_195.parquet`
+- `cycle-4_20250201_233055_acc_94.52%_n_243.parquet`
+
+The name of the file contains the cycle name, the date, the accuracy, and the number of labeled samples.
+
+
+
+```python
+
+import glob
+import pandas as pd
+
+# Get all parquet files with 'cycle' in the name
+cycle_files = glob.glob("cycle-*.parquet")
+
+# Read and concatenate all cycle files
+all_cycles_df = pd.concat([pd.read_parquet(f) for f in cycle_files], ignore_index=True)
+
+all_cycles_df = all_cycles_df.sort_values(by="name", ascending=True)
+all_cycles_df
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>accuracy</th>
+      <th>train_set_size</th>
+      <th>valid_set_size</th>
+      <th>dataset_size</th>
+      <th>num_classes</th>
+      <th>model</th>
+      <th>pretrained</th>
+      <th>loss_fn</th>
+      <th>device</th>
+      <th>seed</th>
+      <th>batch_size</th>
+      <th>image_size</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>cycle-1</td>
+      <td>0.886879</td>
+      <td>80</td>
+      <td>20</td>
+      <td>100</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>cycle-2</td>
+      <td>0.921783</td>
+      <td>120</td>
+      <td>29</td>
+      <td>149</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>cycle-3</td>
+      <td>0.934522</td>
+      <td>156</td>
+      <td>39</td>
+      <td>195</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>cycle-4</td>
+      <td>0.945223</td>
+      <td>195</td>
+      <td>48</td>
+      <td>243</td>
+      <td>10</td>
+      <td>resnet18</td>
+      <td>True</td>
+      <td>FlattenedLoss of CrossEntropyLoss()</td>
+      <td>mps</td>
+      <td>None</td>
+      <td>8</td>
+      <td>224</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=all_cycles_df, x='dataset_size', y='accuracy', marker='o')
+
+plt.title('Model Accuracy vs Dataset Size')
+plt.xlabel('Number of Images')
+plt.ylabel('Accuracy')
+
+plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.1%}'.format(y)))
+
+plt.grid(True, linestyle='--', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+    
+![png](active_learning_files/active_learning_38_0.png)
+    
+
+
+
