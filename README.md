@@ -85,6 +85,9 @@ pip install -e .
 
 ## 🚀 Quickstart
 
+[![Open In Colab][colab_badge]](https://colab.research.google.com/github/dnth/active-vision/blob/main/nbs/imagenette/quickstart.ipynb)
+[![Open In Kaggle][kaggle_badge]](https://kaggle.com/kernels/welcome?src=https://github.com/dnth/active-vision/blob/main/nbs/imagenette/quickstart.ipynb)
+
 ```python
 from active_vision import ActiveLearner
 
