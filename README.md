@@ -132,8 +132,8 @@ Once complete, the labeled samples will be save into a new df.
 We can now add the newly labeled data to the training set.
 
 ```python
-# Add newly labeled data to training set and save as a new file active_labeled
-al.add_to_train_set(labeled_df, output_filename="active_labeled")
+# Add newly labeled data to the dataset
+al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")
 ```
 
 Repeat the process until the model is good enough. Use the dataset to train a larger model and deploy.
