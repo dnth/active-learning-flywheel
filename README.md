@@ -9,7 +9,7 @@
     <br />
     <a href="https://dnth.github.io/active-vision" target="_blank" rel="noopener noreferrer"><strong>Explore the docs »</strong></a>
     <br />
-    <a href="#-quickstart" target="_blank" rel="noopener noreferrer">Quickstart</a>
+    <a href="#️-quickstart" target="_blank" rel="noopener noreferrer">Quickstart</a>
     ·
     <a href="https://github.com/dnth/active-vision/issues/new?assignees=&labels=Feature+Request&projects=&template=feature_request.md" target="_blank" rel="noopener noreferrer">Feature Request</a>
     ·
@@ -83,7 +83,7 @@ pip install -e .
 > uv pip install active-vision
 > ```
 
-## 🛠️ Quickstart
+## 🚀 Quickstart
 
 ```python
 from active_vision import ActiveLearner
