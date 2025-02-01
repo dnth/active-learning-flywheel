@@ -29,6 +29,7 @@ theme:
         - navigation.instant
         - navigation.tracking
         - navigation.top
+        - navigation.expand
         - search.highlight
         - search.share
     custom_dir: "docs/overrides"
