@@ -509,6 +509,7 @@ Once the virtual environment is created, you can install the package using pip.<
 <h2 id="quickstart">🚀 Quickstart<a class="headerlink" href="#quickstart" title="Permanent link">¶</a></h2>
 <p><a href="https://colab.research.google.com/github/dnth/active-vision/blob/main/nbs/imagenette/quickstart.ipynb"><img alt="Open In Colab" src="https://img.shields.io/badge/Open%20In-Colab-blue?style=for-the-badge&amp;logo=google-colab"/></a>
 <a href="https://kaggle.com/kernels/welcome?src=https://github.com/dnth/active-vision/blob/main/nbs/imagenette/quickstart.ipynb"><img alt="Open In Kaggle" src="https://img.shields.io/badge/Open%20In-Kaggle-blue?style=for-the-badge&amp;logo=kaggle"/></a></p>
+<p>The following are code snippets for the active learning loop in active-vision. I recommend running the quickstart notebook in Colab or Kaggle to see the full workflow.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">active_vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearner</span>
 
 <span class="c1"># Create an active learner instance</span>
@@ -518,11 +519,10 @@ Once the virtual environment is created, you can install the package using pip.<
 <span class="n">al</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"resnet18"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load dataset </span>
-<span class="n">train_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">"training_samples.parquet"</span><span class="p">)</span>
 <span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">train_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 
 <span class="c1"># Train model</span>
-<span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">)</span>
 
 <span class="c1"># Evaluate the model on a *labeled* evaluation set</span>
 <span class="n">accuracy</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">eval_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">)</span>
@@ -546,24 +546,17 @@ Once the virtual environment is created, you can install the package using pip.<
     <span class="p">},</span>
 <span class="p">)</span>
 
-<span class="c1"># Launch a Gradio UI to label the low confidence samples, save the labeled samples to a file</span>
-<span class="n">al</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"combination.parquet"</span><span class="p">)</span>
+<span class="c1"># Launch a Gradio UI to label the samples, save the labeled samples to a file</span>
+<span class="n">al</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"samples.parquet"</span><span class="p">)</span>
 </code></pre></div>
 <p><img alt="Gradio UI" src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/labeling_ui.png"/></p>
 <p>In the UI, you can optionally run zero-shot inference on the image. This will use a VLM to predict the label of the image. There are a dozen VLM models as supported in the <a href="https://github.com/dnth/x.infer">x.infer project</a>.</p>
 <p><img alt="Zero-Shot Inference" src="https://raw.githubusercontent.com/dnth/active-vision/main/assets/zero_shot_ui.png"/></p>
 <p>Once complete, the labeled samples will be save into a new df.
 We can now add the newly labeled data to the training set.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Add newly labeled data to the dataset</span>
-<span class="n">al</span><span class="o">.</span><span class="n">add_to_dataset</span><span class="p">(</span><span class="n">labeled_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"active_labeled.parquet"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">al</span><span class="o">.</span><span class="n">add_to_dataset</span><span class="p">(</span><span class="n">labeled_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"active_labeled.parquet"</span><span class="p">)</span>
 </code></pre></div>
 <p>Repeat the process until the model is good enough. Use the dataset to train a larger model and deploy.</p>
-<blockquote>
-<p>[!TIP]
-For the toy dataset, I got to about 93% accuracy on the evaluation set with 200+ labeled images. The best performing model on the <a href="https://github.com/fastai/imagenette">leaderboard</a> got 95.11% accuracy training on all 9469 labeled images.</p>
-<p>This took me about 6 iterations of relabeling. Each iteration took about 5 minutes to complete including labeling and model training (resnet18). See the <a href="./nbs/04_relabel_loop.ipynb">notebook</a> for more details.</p>
-<p>But using the dataset of 200+ images, I trained a more capable model (convnext_small_in22k) and got 99.3% accuracy on the evaluation set. See the <a href="./nbs/05_retrain_larger.ipynb">notebook</a> for more details.</p>
-</blockquote>
 <h2 id="benchmarks">📊 Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">¶</a></h2>
 <p>This section contains the benchmarks I ran using the active learning loop on various datasets.</p>
 <p>Column description:
