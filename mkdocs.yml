@@ -49,7 +49,7 @@ plugins:
     - mkdocs-jupyter:
           include_source: True
           ignore_h1_titles: True
-          execute: True
+          execute: false
           allow_errors: false
           ignore: ["conf.py"]
           execute_ignore: ["*ignore.ipynb"]
@@ -80,11 +80,11 @@ markdown_extensions:
 nav:
     - Home: index.md
     # - Installation: installation.md
-    # - Quickstart: quickstart.md
+    # - Quickstart: quickstart.ipynb
     - Getting Started:
-        - Preparing Data: preparing_data.md
-        - Active Learning Cycle: active_learning.md
-        - Training the Final Model: train.md
+        - Preparing Data: preparing_data.ipynb
+        - Active Learning Cycle: active_learning.ipynb
+        - Training the Final Model: train.ipynb
     # - Contributing: contributing.md
     # - FAQ: faq.md
     # - Changelog: changelog.md
