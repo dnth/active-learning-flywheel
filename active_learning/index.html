@@ -27,7 +27,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#introduction">
+<a class="md-skip" href="#create-an-activelearner">
           Skip to content
         </a>
 </div>
@@ -190,13 +190,6 @@
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
 <li class="md-nav__item">
-<a class="md-nav__link" href="#introduction">
-<span class="md-ellipsis">
-      Introduction
-    </span>
-</a>
-</li>
-<li class="md-nav__item">
 <a class="md-nav__link" href="#create-an-activelearner">
 <span class="md-ellipsis">
       Create an ActiveLearner
@@ -301,13 +294,6 @@
       Table of contents
     </label>
 <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-<li class="md-nav__item">
-<a class="md-nav__link" href="#introduction">
-<span class="md-ellipsis">
-      Introduction
-    </span>
-</a>
-</li>
 <li class="md-nav__item">
 <a class="md-nav__link" href="#create-an-activelearner">
 <span class="md-ellipsis">
@@ -838,7 +824,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="introduction">Introduction<a class="anchor-link" href="#introduction">¶</a></h2><p>This notebook will guide you through the basic steps to get started with Active Vision.</p>
+<p>This notebook will guide you through the basic steps to get started with Active Vision.</p>
 <p>By the end of this notebook, you will be able to:</p>
 <ul>
 <li>Understand the basic workflow of active learning</li>
@@ -856,18 +842,17 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="create-an-activelearner">Create an ActiveLearner<a class="anchor-link" href="#create-an-activelearner">¶</a></h2><p>Now that we have an initial dataset, we can load it into an <code>ActiveLearner</code> object with a model.</p>
-<p>Any fastai and timm models are supported. For simplicity, we will use a <code>resnet18</code> model.</p>
+<h2 id="create-an-activelearner">Create an ActiveLearner<a class="anchor-link" href="#create-an-activelearner">¶</a></h2><p>With the initial dataset ready, we can load it into an <code>ActiveLearner</code> object with a name for the cycle.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-1">
@@ -883,12 +868,50 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">active_vision</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActiveLearner</span>
 
 <span class="n">al</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"cycle-1"</span><span class="p">)</span>
-<span class="n">al</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"resnet18"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"mps"</span><span class="p">)</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-1">from active_vision import ActiveLearner
 
-al = ActiveLearner(name="cycle-1")
-al.load_model(model="resnet18", pretrained=True, device="mps")</div>
+al = ActiveLearner(name="cycle-1")</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>Now let's load a model to be used for active learning. Any <code>fastai</code> and <code>timm</code> models are supported.</p>
+<p>I'd recommend using a model with a small number of parameters, such as <code>resnet18</code> to make sure the active learning cycle is fast.
+This model will only be used in the active learning cycle to sample the most impactful samples to label.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-2">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"resnet18"</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"mps"</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-2">al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 </div>
 </div>
@@ -914,7 +937,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>We can load the initial samples into the <code>ActiveLearner</code> object.</p>
+<p>Next, lets load the initial samples.</p>
 </div>
 </div>
 </div>
@@ -927,7 +950,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [14]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-2">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-3">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -937,9 +960,15 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">initial_samples</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">initial_samples</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">"initial_samples.parquet"</span><span class="p">)</span>
+<span class="n">initial_samples</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-2">initial_samples.head()</div>
+<div class="clipboard-copy-txt" id="cell-3">import pandas as pd
+
+initial_samples = pd.read_parquet("initial_samples.parquet")
+initial_samples.head()</div>
 </div>
 </div>
 </div>
@@ -1007,6 +1036,17 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 </div>
 </div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p>We can load the initial samples into the <code>ActiveLearner</code> object. Point the <code>filepath_col</code> and <code>label_col</code> to the columns in the dataframe.</p>
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
@@ -1016,7 +1056,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [15]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-3">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-4">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1026,13 +1066,9 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span>
-    <span class="n">initial_samples</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span>
-<span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="n">initial_samples</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-3">al.load_dataset(
-    initial_samples, filepath_col="filepath", label_col="label", batch_size=8
-)</div>
+<div class="clipboard-copy-txt" id="cell-4">al.load_dataset(initial_samples, filepath_col="filepath", label_col="label")</div>
 </div>
 </div>
 </div>
@@ -1061,7 +1097,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Let's inspect one batch of the train set.</p>
+<p>Let's inspect one batch of the loaded dataset.</p>
 </div>
 </div>
 </div>
@@ -1074,7 +1110,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [16]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-4">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-5">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1086,7 +1122,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">show_batch</span><span class="p">()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-4">al.show_batch()</div>
+<div class="clipboard-copy-txt" id="cell-5">al.show_batch()</div>
 </div>
 </div>
 </div>
@@ -1124,7 +1160,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [17]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-5">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-6">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1136,7 +1172,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">train_set</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-5">al.train_set</div>
+<div class="clipboard-copy-txt" id="cell-6">al.train_set</div>
 </div>
 </div>
 </div>
@@ -1244,7 +1280,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [18]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-6">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-7">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1256,7 +1292,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">valid_set</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-6">al.valid_set</div>
+<div class="clipboard-copy-txt" id="cell-7">al.valid_set</div>
 </div>
 </div>
 </div>
@@ -1420,7 +1456,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [19]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-7">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-8">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1432,7 +1468,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">lr_find</span><span class="p">()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-7">al.lr_find()</div>
+<div class="clipboard-copy-txt" id="cell-8">al.lr_find()</div>
 </div>
 </div>
 </div>
@@ -1500,7 +1536,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Not let's use the optimal learning rate to train the model end-to-end for 3 epochs and 1 epoch of head tuning.</p>
+<p>Not let's use the optimal learning rate to train the model end-to-end for 10 epochs and 3 epochs of head tuning. In the head tuning phase, the model will be frozen and only the head will be trained.</p>
 </div>
 </div>
 </div>
@@ -1513,7 +1549,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [20]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-8">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-9">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1525,7 +1561,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">,</span> <span class="n">head_tuning_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-8">al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)</div>
+<div class="clipboard-copy-txt" id="cell-9">al.train(epochs=10, lr=5e-3, head_tuning_epochs=3)</div>
 </div>
 </div>
 </div>
@@ -1745,7 +1781,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [21]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-9">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-10">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1758,7 +1794,7 @@ al.load_model(model="resnet18", pretrained=True, device="mps")</div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">evaluation_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="s2">"evaluation_samples.parquet"</span><span class="p">)</span>
 <span class="n">evaluation_df</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-9">evaluation_df = pd.read_parquet("evaluation_samples.parquet")
+<div class="clipboard-copy-txt" id="cell-10">evaluation_df = pd.read_parquet("evaluation_samples.parquet")
 evaluation_df</div>
 </div>
 </div>
@@ -1867,7 +1903,7 @@ evaluation_df</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [22]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-10">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-11">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1879,7 +1915,7 @@ evaluation_df</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">evaluation_df</span><span class="p">,</span> <span class="n">filepath_col</span><span class="o">=</span><span class="s2">"filepath"</span><span class="p">,</span> <span class="n">label_col</span><span class="o">=</span><span class="s2">"label"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-10">al.evaluate(evaluation_df, filepath_col="filepath", label_col="label")</div>
+<div class="clipboard-copy-txt" id="cell-11">al.evaluate(evaluation_df, filepath_col="filepath", label_col="label")</div>
 </div>
 </div>
 </div>
@@ -1970,7 +2006,7 @@ evaluation_df</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-11">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-12">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -1982,7 +2018,7 @@ evaluation_df</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-11">al.summary()</div>
+<div class="clipboard-copy-txt" id="cell-12">al.summary()</div>
 </div>
 </div>
 </div>
@@ -2066,7 +2102,7 @@ evaluation_df</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>The above will create a .parquet file with the summary of the cycle. This will be useful for tracking the progress of the active learning process.</p>
+<p>The above will create a <code>.parquet</code> file with the summary of the cycle. This will be useful for tracking the progress of the active learning process.</p>
 </div>
 </div>
 </div>
@@ -2090,7 +2126,7 @@ evaluation_df</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [24]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-12">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-13">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -2104,7 +2140,7 @@ evaluation_df</div>
 <span class="n">filepaths</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">"filepath"</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 <span class="nb">len</span><span class="p">(</span><span class="n">filepaths</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-12">df = pd.read_parquet("unlabeled_samples.parquet")
+<div class="clipboard-copy-txt" id="cell-13">df = pd.read_parquet("unlabeled_samples.parquet")
 filepaths = df["filepath"].tolist()
 len(filepaths)</div>
 </div>
@@ -2133,7 +2169,7 @@ len(filepaths)</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-13">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-14">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -2146,7 +2182,7 @@ len(filepaths)</div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">pred_df</span> <span class="o">=</span> <span class="n">al</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
 <span class="n">pred_df</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-13">pred_df = al.predict(filepaths, batch_size=128)
+<div class="clipboard-copy-txt" id="cell-14">pred_df = al.predict(filepaths, batch_size=128)
 pred_df</div>
 </div>
 </div>
@@ -2351,7 +2387,7 @@ pred_df</div>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [26]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-14">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-15">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -2375,7 +2411,7 @@ pred_df</div>
 
 <span class="n">samples</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-14">samples = al.sample_combination(
+<div class="clipboard-copy-txt" id="cell-15">samples = al.sample_combination(
     pred_df,
     num_samples=50,
     combination={
@@ -3045,20 +3081,20 @@ samples</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="label">Label<a class="anchor-link" href="#label">¶</a></h2><p>Let's label the samples and save them to a parquet file named <code>combination.parquet</code>.</p>
+<h2 id="label">Label<a class="anchor-link" href="#label">¶</a></h2><p>Let's label the samples and save them to a parquet file named <code>combination.parquet</code>. This should launch a Gradio interface to label the samples.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [27]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-15">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-16">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3070,35 +3106,7 @@ samples</div>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"combination.parquet"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-15">al.label(samples, output_filename="combination.parquet")</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre><span class="ansi-green-fg">2025-02-01 22:50:11.038</span> | <span class="ansi-bold">INFO    </span> | <span class="ansi-cyan-fg">active_vision.core</span>:<span class="ansi-cyan-fg">label</span>:<span class="ansi-cyan-fg">612</span> - <span class="ansi-bold">Launching labeling interface for 50 samples</span>
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>* Running on local URL:  http://127.0.0.1:7860
-
-To create a public link, set `share=True` in `launch()`.
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
-<div><iframe allow="autoplay; camera; microphone; clipboard-read; clipboard-write;" allowfullscreen="" frameborder="0" height="1000" src="http://127.0.0.1:7860/" width="100%"></iframe></div>
+<div class="clipboard-copy-txt" id="cell-16">al.label(samples, output_filename="combination.parquet")</div>
 </div>
 </div>
 </div>
@@ -3122,18 +3130,7 @@ To create a public link, set `share=True` in `launch()`.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>The Gradio interface will open up and you can label the samples. You could also see the confidence of the model for each sample to debug the model.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>We can inspect the samples we just labeled.</p>
+<p>Once you are done labeling, you can inspect the samples you just labeled.</p>
 </div>
 </div>
 </div>
@@ -3146,7 +3143,7 @@ To create a public link, set `share=True` in `launch()`.
 <div class="jp-InputPrompt jp-InputArea-prompt">In [28]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-16">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-17">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3160,7 +3157,7 @@ To create a public link, set `share=True` in `launch()`.
 
 <span class="n">labeled_df</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-16">labeled_df = pd.read_parquet("combination.parquet")
+<div class="clipboard-copy-txt" id="cell-17">labeled_df = pd.read_parquet("combination.parquet")
 
 labeled_df
 </div>
@@ -3458,7 +3455,7 @@ labeled_df
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="add-to-train-set">Add to train set<a class="anchor-link" href="#add-to-train-set">¶</a></h2><p>Now that we have labeled the samples, we can add them to the train set and save it to a parquet file named <code>active_labeled.parquet</code>.</p>
+<h2 id="add-to-train-set">Add to train set<a class="anchor-link" href="#add-to-train-set">¶</a></h2><p>Now that we have labeled the samples, we can add them the existing dataset and save it to a parquet file named <code>active_labeled.parquet</code>.</p>
 </div>
 </div>
 </div>
@@ -3471,7 +3468,7 @@ labeled_df
 <div class="jp-InputPrompt jp-InputArea-prompt">In [29]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-17">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-18">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3483,7 +3480,7 @@ labeled_df
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="n">al</span><span class="o">.</span><span class="n">add_to_dataset</span><span class="p">(</span><span class="n">labeled_df</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="s2">"active_labeled.parquet"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-17">al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")</div>
+<div class="clipboard-copy-txt" id="cell-18">al.add_to_dataset(labeled_df, output_filename="active_labeled.parquet")</div>
 </div>
 </div>
 </div>
@@ -3539,10 +3536,10 @@ labeled_df
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-18">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-19">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3564,8 +3561,7 @@ labeled_df
 <span class="n">all_cycles_df</span> <span class="o">=</span> <span class="n">all_cycles_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">"name"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">all_cycles_df</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-18">
-import glob
+<div class="clipboard-copy-txt" id="cell-19">import glob
 import pandas as pd
 
 # Get all parquet files with 'cycle' in the name
@@ -3586,7 +3582,7 @@ all_cycles_df
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[1]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
@@ -3700,10 +3696,10 @@ all_cycles_df
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
-<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-19">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-20">
 <div>
 <span class="notice" hidden="">Copied!</span>
 <svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
@@ -3731,7 +3727,7 @@ all_cycles_df
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-19">import seaborn as sns
+<div class="clipboard-copy-txt" id="cell-20">import seaborn as sns
 import matplotlib.pyplot as plt
 
 
@@ -3766,16 +3762,6 @@ plt.show()</div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-</div>
-</div>
-</div>
-</div>
 </div> <!-- jp-Notebook -->
 </div> <!-- jupyter-wrapper -->
 <style>
@@ -3786,7 +3772,7 @@ plt.show()</div>
 <span class="md-icon" title="Last update">
 <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
 </span>
-<span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-03T14:04:21+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-03</span>
+<span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2025-02-03T15:49:51+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2025-02-03</span>
 </span>
 <span class="md-source-file__fact">
 <span class="md-icon" title="Created">
