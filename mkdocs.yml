@@ -48,7 +48,7 @@ plugins:
     # - pdf-export
     - mkdocs-jupyter:
           include_source: True
-          ignore_h1_titles: True
+          ignore_h1_titles: false
           execute: false
           allow_errors: false
           ignore: ["conf.py"]
