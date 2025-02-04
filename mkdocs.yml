@@ -47,8 +47,8 @@ plugins:
           type: timeago
     # - pdf-export
     - mkdocs-jupyter:
-          include_source: True
-          ignore_h1_titles: false
+          include_source: true
+          ignore_h1_titles: true
           execute: false
           allow_errors: false
           ignore: ["conf.py"]
